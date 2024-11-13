@@ -6,14 +6,12 @@ class CheckListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+    return const Center(
+      child:
         Text(
           '체크 리스트 화면',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-      ],
     );
   }
 }
