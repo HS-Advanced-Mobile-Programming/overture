@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:overture/CheckListScreen.dart';
-import 'package:overture/HomeScreenBody.dart';
+import 'package:overture/HomeScreen/HomeScreenBody.dart';
 import 'package:overture/ProfileScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized;
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -47,6 +52,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Overture', style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: Padding(
+          padding: EdgeInsets.all(5.0),
+          child: Image.asset('asset/img/appicon.png')
+        ),
+        actions: [IconButton(onPressed: null, icon: Icon(Icons.notifications_none,size: 40))],
+        backgroundColor: Color(0xFFF0F4F6)
+      ),
+      backgroundColor: Color(0xFFF0F4F6),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
