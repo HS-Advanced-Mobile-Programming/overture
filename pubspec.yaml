@@ -39,6 +39,7 @@ dependencies:
   dotted_line: ^3.2.3
   flutter_dotenv: ^5.2.1
   json_annotation: ^4.9.0
+  flutter_animated_icons: ^1.0.1
 
 dev_dependencies:
   flutter_test:

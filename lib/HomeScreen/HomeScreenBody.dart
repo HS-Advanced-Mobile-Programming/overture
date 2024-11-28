@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'ExchangeRate.dart';
+import 'ExchangeRateWidget.dart';
+import 'WeatherWidget.dart';
 
 class HomeScreenBody extends StatelessWidget {
   const HomeScreenBody({super.key});
@@ -8,8 +9,8 @@ class HomeScreenBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        children: [ExchangeRate(), const Text('나의 일정'), const Text('날씨')],
+      child: ListView(
+        children: [ExchangeRateWidget(), const Text('나의 일정'), WeatherWidget()],
       )
     );
   }

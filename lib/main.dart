@@ -8,9 +8,12 @@ import 'package:overture/ProfileScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
 
+//TODO main icon 움직이게
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized;
   await dotenv.load(fileName: ".env");
+  HttpOverrides.global = NoCheckCertificateHttpOverrides();
   runApp(const MyApp());
 }
 
@@ -22,6 +25,15 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       home: HomeScreen(),
     );
+  }
+}
+
+class NoCheckCertificateHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
 

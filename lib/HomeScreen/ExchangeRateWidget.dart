@@ -9,12 +9,12 @@ import 'package:intl/intl.dart';
 
 import '../models/exchange_model_files/exchange_model.dart';
 
-class ExchangeRate extends StatefulWidget {
+class ExchangeRateWidget extends StatefulWidget {
   @override
-  State<ExchangeRate> createState() => _ExchangeRateState();
+  State<ExchangeRateWidget> createState() => _ExchangeRateWidgetState();
 }
 
-class _ExchangeRateState extends State<ExchangeRate> {
+class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
   List<DropdownMenuEntry> countryName = [
     DropdownMenuEntry(value: "KRW", label: "한국 원"),
     DropdownMenuEntry(value: "AUD", label: "호주 달러"),
@@ -104,6 +104,7 @@ Future<String> getExchangeJson(String cur_unit) async {
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
+      debugPrint(response.body);
       final List<dynamic> jsonResponse = jsonDecode(response.body);
       final List<ExchangeModel> result = jsonResponse
           .map<ExchangeModel>((data) => ExchangeModel.fromJson(data))
@@ -117,7 +118,7 @@ Future<String> getExchangeJson(String cur_unit) async {
       }
     }
   } catch (e) {
-    debugPrint("API 호출 오류: $e");
+    debugPrint("Exchange API 호출 오류: $e");
     return "ERROR";
   }
 
