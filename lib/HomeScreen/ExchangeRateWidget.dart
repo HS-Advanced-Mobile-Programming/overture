@@ -55,32 +55,36 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("${exchange_price} ${cur_unit} 당", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: Color(0xFF3C91FF))),
-                        Text("${kor_price} 원", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold))
-                      ],
+                    Padding(
+                      padding: EdgeInsets.only(right: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("${exchange_price} ${cur_unit} 당", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: Color(0xFF3C91FF))),
+                          Text("${kor_price} 원", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold))
+                        ],
+                      ),
                     ),
-                    DropdownMenu(
-                      initialSelection: "KRW",
-                      dropdownMenuEntries: countryName,
-                      onSelected: (value) async {
-                        cur_unit = value;
+                    Flexible(
+                      child: DropdownMenu(
+                        initialSelection: "KRW",
+                        dropdownMenuEntries: countryName,
+                        onSelected: (value) async {
+                          cur_unit = value;
 
-                        if (cur_unit == "IDR" || cur_unit == "JPY") {
-                          exchange_price = "100";
-                        } else {
-                          exchange_price = "1";
-                        }
+                          if (cur_unit == "IDR" || cur_unit == "JPY") {
+                            exchange_price = "100";
+                          } else {
+                            exchange_price = "1";
+                          }
 
-                        await getExchangeJson(cur_unit).then((fetchedKorPrice)=>{
-                          setState(() {
-                            kor_price = fetchedKorPrice;
-                          })
-                        });
-
-                      },
+                          await getExchangeJson(cur_unit).then((fetchedKorPrice)=>{
+                            setState(() {
+                              kor_price = fetchedKorPrice;
+                            })
+                          });
+                        },
+                      )
                     )
                   ],
                 )
@@ -95,8 +99,10 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
 
 Future<String> getExchangeJson(String cur_unit) async {
   var now = DateTime.now();
+  debugPrint("[day]${now}");
   var yesterday = now.subtract(Duration(days: 1));
   var formattedDate = DateFormat('yyyyMMdd').format(yesterday);
+  debugPrint("[day]${formattedDate}");
 
   String url = "${dotenv.get('EXCHANGE_BASE_URL')}?authkey=${dotenv.get("EXCHANGE_API_KEY")}&searchdate=${formattedDate}&data=${dotenv.get("EXCHANGE_DATA_TYPE")}";
 

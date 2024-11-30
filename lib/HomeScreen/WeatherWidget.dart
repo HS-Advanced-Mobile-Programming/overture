@@ -57,21 +57,27 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("${cur_city}의 \n날씨", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
-                    DropdownMenu(
-                      initialSelection: "Seoul",
-                      dropdownMenuEntries: cityName,
-                      onSelected: (value) {
-                        setState(() {
-                          cur_city = value;
-                          getWeatherJson(cur_city).then((value)=>{
-                            setState(() {
-                              weatherOfFiveDays = value ?? weatherOfFiveDays;
-                            })
+                    Padding(
+                      padding: EdgeInsets.only(right: 24),
+                      child: Text("${cur_city}의 \n날씨", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    ),
+                    Flexible(
+                      child: DropdownMenu(
+                        initialSelection: "Seoul",
+                        dropdownMenuEntries: cityName,
+                        onSelected: (value) {
+                          setState(() {
+                            cur_city = value;
+                            getWeatherJson(cur_city).then((value)=>{
+                              setState(() {
+                                weatherOfFiveDays = value ?? weatherOfFiveDays;
+                              })
+                            });
                           });
-                        });
-                      },
+                        },
+                      )
                     )
+
                   ]
                 ),
                 SizedBox(height: 32),
