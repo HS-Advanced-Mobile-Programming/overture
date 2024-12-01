@@ -7,6 +7,8 @@ import 'package:overture/HomeScreen/HomeScreenBody.dart';
 import 'package:overture/ProfileScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
+import 'package:overture/models/schedule_model_files/schedule_model.dart';
+import 'package:provider/provider.dart';
 
 //TODO main icon 움직이게
 
@@ -14,7 +16,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized;
   await dotenv.load(fileName: ".env");
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ScheduleModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
