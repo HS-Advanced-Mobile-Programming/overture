@@ -5,6 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+
 
 class CheckListScreen extends StatefulWidget {
   const CheckListScreen({super.key});
@@ -32,16 +34,21 @@ class _CheckListScreenState extends State<CheckListScreen> {
   String _flightName = "KE901"; //항공편
   String _terminalNum="T2"; // 터미널
   String _portNum = "253";// 탑승구
-  String _boardingTime = "8:30";
+  String _boardingTime = DateFormat('HH:mm').format(DateTime.now());
+
+  late String editableBoardingTime;
 
   @override
   void initState() {
     super.initState();
+    //TODO 파베에서 정보 읽어 오기
+
     this._totalDate = (DateFormat("yyyy.MM.dd").parse(_endDate)
         .difference(DateFormat("yyyy.MM.dd").parse(_startDate))
         .inDays+1).toString();
     this.editableStartDate = _startDate;
     this.editableEndDate = _endDate;
+    this.editableBoardingTime = _boardingTime;
   }
 
   List<Widget> TravelEssentialsList = [
@@ -131,6 +138,8 @@ class _CheckListScreenState extends State<CheckListScreen> {
     TextEditingController _portNumController = TextEditingController(text: this._portNum);
     TextEditingController _boardingTimeController = TextEditingController(text: this._boardingTime);
 
+    String tempTime = "";
+
     return Padding(
       padding: EdgeInsets.all(8),
       child: Center(
@@ -143,7 +152,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
                 children: [
                   Text("출발 날짜"),
                   Text(editableStartDate),
-                  IconButton(icon: Icon(Icons.calendar_today), onPressed: (){
+                  IconButton(icon: Icon(Icons.calendar_today, color: Colors.pink,), onPressed: (){
                     showDatePicker(
                       context: context,
                       initialDate: DateFormat("yyyy.MM.dd").parse(editableStartDate),
@@ -164,7 +173,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
                 children: [
                   Text("도착 날짜"),
                   Text(editableEndDate),
-                  IconButton(icon: Icon(Icons.calendar_today), onPressed: (){
+                  IconButton(icon: Icon(Icons.calendar_today, color: Colors.pink,), onPressed: (){
                     showDatePicker(
                       context: context,
                       initialDate: DateFormat("yyyy.MM.dd").parse(editableEndDate),
@@ -204,10 +213,73 @@ class _CheckListScreenState extends State<CheckListScreen> {
                 controller: _portNumController,
                 decoration: InputDecoration(labelText: '탑승구'),
               ),
-              TextField(
-                readOnly: true,
-                controller: _boardingTimeController,
-                decoration: InputDecoration(labelText: '탑승시간'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("탑승 시간"),
+                  Text(editableBoardingTime),
+                  IconButton(
+                    icon: Icon(Icons.access_time_rounded, color: Colors.pink,),
+                    onPressed: (){
+                      showModalBottomSheet(context: context, builder: (BuildContext context) {
+                        return Column(
+                            children: [
+                              Spacer(),
+                              TimePickerSpinner(
+                                is24HourMode: false,
+                                normalTextStyle: TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.black
+                                ),
+                                highlightedTextStyle: TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.blue
+                                ),
+                                spacing: 50,
+                                itemHeight: 80,
+                                isForce2Digits: true,
+                                onTimeChange: (time) {
+                                  setState(() {
+                                    tempTime = DateFormat('HH:mm').format(time);
+                                  });
+                                },
+                              ),
+                              Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      color:Colors.black,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);  // 취소 버튼 클릭 시 BottomSheet 닫기
+                                        },
+                                        child: Text("취소", style: TextStyle(color: Colors.white),),
+                                      ),
+                                    )
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      color:Colors.blue,
+                                      child: TextButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          editableBoardingTime = tempTime;  // 저장 버튼 클릭 시 시간 반영
+                                        });
+                                        Navigator.pop(context);  // BottomSheet 닫기
+                                      },
+                                      child: Text("수정", style: TextStyle(color: Colors.white),),
+                                    ),
+                                  )),
+                                ],
+                              ),
+                            ],
+                          );
+                      });
+                    },
+                  )
+                ],
               ),
               TextButton(
                 onPressed: (){
@@ -223,7 +295,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
                   String newFlightName = _flightNameController.text;
                   String newTerminalNum = _terminalNumController.text;
                   String newPortNum = _portNumController.text;
-                  String newBoardingTime = _boardingTimeController.text;
+                  String newBoardingTime = editableBoardingTime;
 
                   setState(() {
                     this._startDate = newStartDate;
@@ -260,16 +332,6 @@ class _CheckListScreenState extends State<CheckListScreen> {
         title: Text("🎒 여행 필수 품목"),
         children: [
           Column(children: this.TravelEssentialsList),
-          GestureDetector( // 아이템 추가 버튼
-            onTap: (){
-              showModalBottomSheet(context: context, builder: (context) {
-                return Container(
-                  //TODO 리스트Item 추가창 만들기
-                );
-              });
-            },
-            child: Padding(padding: EdgeInsets.all(15), child: Row(children: [Icon(Icons.add_box), SizedBox(width: 10),Text("추가하기") ]))
-          )
         ]
       ),
     );
@@ -336,7 +398,6 @@ Widget _CheckListItem(String listName, String description) {
     }
   });
 
-  // TODO 롱 클릭시 수정 필요함? 준희 물어보기 -> 여행 필수 품목은 고정으로 하는게 어떠 신지? (수정, 추가 불가)
   return ExpansionTile(
     title: Row(
       children: [
