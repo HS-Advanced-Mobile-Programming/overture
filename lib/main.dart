@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
-import 'package:overture/ProfileScreen.dart';
+import 'package:overture/ProfileScreen/ProfileScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
 
