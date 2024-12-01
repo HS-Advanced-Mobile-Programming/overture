@@ -44,9 +44,9 @@ class _ScheduleFormState extends State<ScheduleForm> {
         return Container(
           height: MediaQuery.of(context).size.height * 0.9,
           child: PlaceSearch(
-            onPlaceSelected: (String selectedPlace) {
+            onPlaceSelected: (Map<String, String> selectedPlace) {
               setState(() {
-                _placeController.text = selectedPlace;
+                _placeController.text = selectedPlace['name'] ?? '';
               });
               Navigator.pop(context);
             },

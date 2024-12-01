@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PlaceSearch extends StatefulWidget {
-  final Function(String) onPlaceSelected;
+  final Function(Map<String, String>) onPlaceSelected;
 
   PlaceSearch({required this.onPlaceSelected});
 
@@ -37,7 +37,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
           padding: EdgeInsets.all(8.0),
           child: TextField(
             onChanged: _performSearch,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: '장소 검색',
               suffixIcon: Icon(Icons.search),
             ),
@@ -62,7 +62,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              Text(place['name']!, style: Theme.of(context).textTheme.labelLarge),
+                              Text(place['name']!, style: Theme.of(context).textTheme.titleLarge),
                               Text(place['address']!),
                               SizedBox(height: 20),
                               ElevatedButton(
@@ -77,7 +77,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
                   },
                 ),
                 onTap: () {
-                  widget.onPlaceSelected(place['name']!);
+                  widget.onPlaceSelected(place);
                   Navigator.of(context).pop();
                 },
               );
