@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
+import 'package:intl/intl.dart';
 
 class CheckListScreen extends StatefulWidget {
   const CheckListScreen({super.key});
@@ -15,18 +16,33 @@ class CheckListScreen extends StatefulWidget {
 class _CheckListScreenState extends State<CheckListScreen> {
 
   //TODO DB에서 읽어옴 -> 데이터 없을 때도 출력 필요
-  String _startDate = "2024.07.01";
-  String _endDate = "2024.07.01";
+
+  String _startDate = DateFormat('yyyy.MM.dd').format(DateTime.now());
+  String _endDate = DateFormat('yyyy.MM.dd').format(DateTime.now());
+
+  late String editableStartDate;
+  late String editableEndDate;
+
   String _fromAirport = "KOREA/INC"; // 출발 나라와 공항 이름의 조합
   String _toAirport = "FRANCE/CDG"; // 도착 나라와 공항 이름의 조합
 
-  String _totalDate = "3";
+  late String _totalDate;
 
   String _airline = "대한항공"; //항공사
   String _flightName = "KE901"; //항공편
   String _terminalNum="T2"; // 터미널
   String _portNum = "253";// 탑승구
-  String _boardingTime = "19:30"; // 탑승시간
+  String _boardingTime = "8:30";
+
+  @override
+  void initState() {
+    super.initState();
+    this._totalDate = (DateFormat("yyyy.MM.dd").parse(_endDate)
+        .difference(DateFormat("yyyy.MM.dd").parse(_startDate))
+        .inDays+1).toString();
+    this.editableStartDate = _startDate;
+    this.editableEndDate = _endDate;
+  }
 
   List<Widget> TravelEssentialsList = [
     _CheckListItem("비자발급","프랑스 여행 시 단기체류(90일 이하)의 경우 무비자 입국 가능 장기체류의 경우 별도의 비자신청이 필요합니다.")
@@ -105,38 +121,8 @@ class _CheckListScreenState extends State<CheckListScreen> {
     );
   }
 
-  Widget TravelPeriod(String startDate, String fromAirport ,String endDate, String toAirport){
-    // TODO 여기서  totalTime 시간 계산 -> 이미 앞에서 시간이 계산 되었기 때문
-
-    return Padding(
-      padding: EdgeInsets.only(top: 16),
-      child: Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Column( // from part
-              children: [
-                Text("${startDate}", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25)),
-                Text("${fromAirport}")
-              ],
-            ),
-            Padding(padding: EdgeInsets.only(right: 8, left: 8), child: Icon(Icons.airplanemode_active)),
-            Column( // end part
-              children: [
-                Text("${endDate}", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25)),
-                Text("${toAirport}")
-              ],
-            )
-          ],
-        )
-      )
-    );
-  }
-
   // 여행 정보 수정 Widget
   Widget EditTravelPeriodWidget(){
-    TextEditingController _startDateController = TextEditingController(text: this._startDate);
-    TextEditingController _endDateController = TextEditingController(text: this._endDate);
     TextEditingController _fromAirportController = TextEditingController(text: this._fromAirport);
     TextEditingController _toAirportController = TextEditingController(text: this._toAirport);
     TextEditingController _airlineController = TextEditingController(text: this._airline);
@@ -145,7 +131,6 @@ class _CheckListScreenState extends State<CheckListScreen> {
     TextEditingController _portNumController = TextEditingController(text: this._portNum);
     TextEditingController _boardingTimeController = TextEditingController(text: this._boardingTime);
 
-
     return Padding(
       padding: EdgeInsets.all(8),
       child: Center(
@@ -153,15 +138,47 @@ class _CheckListScreenState extends State<CheckListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                readOnly: true,
-                controller: _startDateController,
-                decoration: InputDecoration(labelText: '출발 날짜'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("출발 날짜"),
+                  Text(editableStartDate),
+                  IconButton(icon: Icon(Icons.calendar_today), onPressed: (){
+                    showDatePicker(
+                      context: context,
+                      initialDate: DateFormat("yyyy.MM.dd").parse(editableStartDate),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    ).then((value) {
+                      if (value != null) {
+                        setState(() {
+                          editableStartDate = DateFormat('yyyy.MM.dd').format(value);
+                        });
+                      }
+                    });
+                  },)
+                ],
               ),
-              TextField(
-                controller: _endDateController,
-                readOnly: true,
-                decoration: InputDecoration(labelText: '도착 날짜'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("도착 날짜"),
+                  Text(editableEndDate),
+                  IconButton(icon: Icon(Icons.calendar_today), onPressed: (){
+                    showDatePicker(
+                      context: context,
+                      initialDate: DateFormat("yyyy.MM.dd").parse(editableEndDate),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    ).then((value) {
+                      if (value != null) {
+                        setState(() {
+                          editableEndDate = DateFormat('yyyy.MM.dd').format(value);
+                        });
+                      }
+                    });
+                  },)
+                ],
               ),
               TextField(
                 controller: _fromAirportController,
@@ -196,10 +213,10 @@ class _CheckListScreenState extends State<CheckListScreen> {
                 onPressed: (){
                   //TODO firebase에 저장 필요
                   //EX : _boardingTimeController.text로 값 가져오기
-                  //지금은 UI 반영만 했음
+                  //지금은 UI 반영만 된 상태
 
-                  String newStartDate = _startDateController.text;
-                  String newEndDate = _endDateController.text;
+                  String newStartDate = editableStartDate;
+                  String newEndDate = editableEndDate;
                   String newFromAirport = _fromAirportController.text;
                   String newToAirport = _toAirportController.text;
                   String newAirLine = _airlineController.text;
@@ -218,7 +235,9 @@ class _CheckListScreenState extends State<CheckListScreen> {
                     this._terminalNum = newTerminalNum;
                     this._portNum = newPortNum;
                     this._boardingTime = newBoardingTime;
-                    // this._totalDate = "여기서 시간 계산"
+                    this._totalDate = (DateFormat("yyyy.MM.dd").parse(_endDate)
+                        .difference(DateFormat("yyyy.MM.dd").parse(_startDate))
+                        .inDays+1).toString();
                   });
 
                 },
@@ -258,6 +277,31 @@ class _CheckListScreenState extends State<CheckListScreen> {
 
 }
 
+Widget TravelPeriod(String startDate, String fromAirport ,String endDate, String toAirport){
+  return Padding(
+      padding: EdgeInsets.only(top: 16),
+      child: Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column( // from part
+                children: [
+                  Text("${startDate}", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25)),
+                  Text("${fromAirport}")
+                ],
+              ),
+              Padding(padding: EdgeInsets.only(right: 8, left: 8), child: Icon(Icons.airplanemode_active)),
+              Column( // end part
+                children: [
+                  Text("${endDate}", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25)),
+                  Text("${toAirport}")
+                ],
+              )
+            ],
+          )
+      )
+  );
+}
 
 Widget _CheckListItem(String listName, String description) {
   Map<String, String> clickableWords = {
