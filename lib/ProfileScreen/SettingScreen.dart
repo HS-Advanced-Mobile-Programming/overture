@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:overture/ProfileScreen/AccountSettingScreen.dart';
+import 'package:overture/ProfileScreen/PrivacyPolicyScreen.dart';
+import 'package:overture/ProfileScreen/TermScreen.dart';
+// import 'package:url_launcher/url_launcher.dart';
 
-class SettingScreen extends StatelessWidget {
+class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
+  @override
+  _SettingScreenState createState() => _SettingScreenState();
+}
+
+class _SettingScreenState extends State<SettingScreen> {
+  bool isTravelNotificationOn = true;
+  bool isAppPushNotificationOn = true;
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +29,23 @@ class SettingScreen extends StatelessWidget {
             title: const Text("계정 설정"),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AccountSettingScreen(),
+                ),
+              );
             },
           ),
           const SectionTitle(title: "알림"),
           SwitchListTile(
             title: const Text("여행 알림"),
-            value: true,
+            value: isTravelNotificationOn,
             activeColor: const Color(0xFF3C91FF),
             onChanged: (bool value) {
+              setState(() {
+                isTravelNotificationOn = value; // 상태 업데이트
+              });
             },
           ),
           const Padding(
@@ -37,9 +57,12 @@ class SettingScreen extends StatelessWidget {
           ),
           SwitchListTile(
             title: const Text("앱 푸시 알림"),
-            value: true,
+            value: isAppPushNotificationOn,
             activeColor: const Color(0xFF3C91FF),
             onChanged: (bool value) {
+              setState(() {
+                isAppPushNotificationOn = value; // 상태 업데이트
+              });
             },
           ),
           const SectionTitle(title: "고객지원"),
@@ -51,6 +74,30 @@ class SettingScreen extends StatelessWidget {
             ),),
           ),
           const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Divider(
+              color: Colors.grey,
+              thickness: 1.0,
+            ),
+          ),
+          ListTile(
+            title: const Text("이메일 문의하기"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+          ),
+          const SectionTitle(title: "이용 약관"),
+          ListTile(
+            title: const Text("서비스 약관 보기"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TermsScreen(),
+                ),
+              );
+            },
+          ),
+          const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0), // 양쪽에 패딩 추가
             child: Divider(
               color: Colors.grey, // Divider 색상
@@ -58,16 +105,15 @@ class SettingScreen extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: const Text("이메일 문의하기"),
+            title: const Text("개인정보 처리방침"),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {
-            },
-          ),
-          const SectionTitle(title: "서비스 약관"),
-          ListTile(
-            title: const Text("서비스 약관 보기"),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrivacyPolicyScreen(),
+                ),
+              );
             },
           ),
         ],
