@@ -44,7 +44,7 @@ class _ScheduleViewState extends State<ScheduleView> {
           Expanded(
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
-                _selectedDate ??= widget.startDate.add(Duration(days: _selectedDay));
+                _selectedDate ??= widget.startDate.add(Duration(days: _selectedDay - 1));
                 final filteredSchedules = scheduleModel.schedulesForDate(_selectedDate!);
                 final filteredScheduleModel = ScheduleModel();
                 filteredScheduleModel.addScheduleList(filteredSchedules);
@@ -59,6 +59,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                       },
                       onDelete: () {
                         filteredScheduleModel.deleteSchedule(schedule.id);
+                        scheduleModel.deleteSchedule(schedule.id);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: const Text('일정이 삭제되었습니다.'),
@@ -66,6 +67,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                               label: '되돌리기',
                               onPressed: () {
                                 filteredScheduleModel.addSchedule(schedule);
+                                scheduleModel.addSchedule(schedule);
                               },
                             ),
                           ),
