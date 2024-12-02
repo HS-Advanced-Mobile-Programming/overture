@@ -7,7 +7,7 @@ class WeatherModel {
   String cod;
   int message;
   int cnt;
- List<WeatherData> list;
+  List<WeatherData> list;
 
   WeatherModel({
     required this.cod,

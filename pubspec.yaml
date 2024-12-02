@@ -40,11 +40,16 @@ dependencies:
   flutter_rating_bar: ^4.0.0
 
   cupertino_icons: ^1.0.8
-  intl: ^0.20.0
+  intl: ^0.20.1
   dotted_line: ^3.2.3
   flutter_dotenv: ^5.2.1
   json_annotation: ^4.9.0
   flutter_animated_icons: ^1.0.1
+  expandable_widgets: ^1.0.3+1
+  flutter_time_picker_spinner: ^2.0.0
+  counter_button: ^1.0.1
+  google_maps_flutter: ^2.10.0
+  geolocator: ^13.0.2
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +81,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - asset/img/
+    - asset/img/marker/red/
+    - asset/img/marker/green/
+    - asset/img/marker/purple/
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

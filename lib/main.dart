@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
+import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
@@ -62,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const ScheduleScreen(),
     const TravelScreen(),
     const SettingScreen(),
+    const MapScreen()
   ];
 
   void _onItemTapped(int index) {
@@ -80,9 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Image.asset('asset/img/appicon.png')
         ),
         actions: [IconButton(onPressed: null, icon: Icon(Icons.notifications_none,size: 40))],
-        backgroundColor: const Color(0xFFF0F4F6)
+        backgroundColor: Color(0xFFF0F4F6)
       ),
-      backgroundColor: const Color(0xFFF0F4F6),
+      backgroundColor: Color(0xFFF0F4F6),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -108,6 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.person),
             label: '마이 페이지',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: '지도'
+          )
         ],
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
