@@ -1,11 +1,13 @@
 import 'dart:ffi';
 
+import 'package:counter_button/counter_button.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+
+import 'EssentialCheckListWidget.dart';
 
 
 class CheckListScreen extends StatefulWidget {
@@ -37,11 +39,18 @@ class _CheckListScreenState extends State<CheckListScreen> {
   String _boardingTime = DateFormat('HH:mm').format(DateTime.now());
 
   late String editableBoardingTime;
+  List<Widget> TravelEssentialsList = [
+    EssentialCheckListItem(itemName: "비자발급",description:  "프랑스 여행 시 단기체류(90일 이하)의 경우 무비자 입국 가능 장기체류의 경우 별도의 비자신청이 필요합니다.")
+  ];
+
+  List<Widget> ClothingList = [];
+  int _newCounterValue = 0;
 
   @override
   void initState() {
     super.initState();
     //TODO 파베에서 정보 읽어 오기
+    // 기반으로 TravelEssentialsList 초기화
 
     this._totalDate = (DateFormat("yyyy.MM.dd").parse(_endDate)
         .difference(DateFormat("yyyy.MM.dd").parse(_startDate))
@@ -51,9 +60,6 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableBoardingTime = _boardingTime;
   }
 
-  List<Widget> TravelEssentialsList = [
-    _CheckListItem("비자발급","프랑스 여행 시 단기체류(90일 이하)의 경우 무비자 입국 가능 장기체류의 경우 별도의 비자신청이 필요합니다.")
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -61,68 +67,72 @@ class _CheckListScreenState extends State<CheckListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children:[
-          Container(
-            padding: EdgeInsets.all(16.0),
-            color: Colors.white,
-            child:Column(
-              children: [
-                Row( // 공유버튼 및 체크리스트 제목 부분
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("체크리스트", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
-                    IconButton(
-                      onPressed: () {
-                        //TODO 공유 화면
-                      },
-                      icon: Icon(Icons.share, color: Colors.blue, size: 32)
-                    )
-                  ]
-                ),
-                Row( // 여행일자 및 여행 총 시간 설명,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 시작 일자, 출발 공항, 도착 일자, 도착 공항
-                        TravelPeriod(_startDate, _fromAirport, _endDate, _toAirport),
-
-                        // 구체적인 항공편 정보
-                        Padding(
-                          padding: EdgeInsets.only(top: 16,bottom: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("항공사 : ${_airline} | 항공편 : ${_flightName}", style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF495057)),),
-                              Text("출발터미널 : ${_terminalNum} | 탑승구 : ${_portNum} | 탑승시간 : ${_boardingTime}", style: TextStyle(fontWeight: FontWeight.w800, color:Color(0xFF495057)),)
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column( // 총 여행시간
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text("총 여행"),
-                        Text("${_totalDate} 일", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25))
-                      ],
-                    ),
-                  ],
-                ),
-                // 수정 화면 띄우기
-                Container(
-                  child: Expandable(
-                    firstChild: Text("여행 정보 수정", style: TextStyle(color: Colors.blue,)),
-                    secondChild: EditTravelPeriodWidget(),
-                    arrowLocation: ArrowLocation.left,
-                    arrowWidget: Icon(Icons.keyboard_arrow_up_sharp, color: Colors.blue,),
-                    boxShadow: [],
+          Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              color: Colors.white,
+              child:Column(
+                children: [
+                  Row( // 공유버튼 및 체크리스트 제목 부분
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("체크리스트", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      IconButton(
+                        onPressed: () {
+                          //TODO 공유 화면
+                        },
+                        icon: Icon(Icons.share, color: Colors.blue, size: 32)
+                      )
+                    ]
                   ),
-                )
-              ],
+                  Row( // 여행일자 및 여행 총 시간 설명,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 시작 일자, 출발 공항, 도착 일자, 도착 공항
+                          TravelPeriod(_startDate, _fromAirport, _endDate, _toAirport),
+
+                          // 구체적인 항공편 정보
+                          Padding(
+                            padding: EdgeInsets.only(top: 16,bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("항공사 : ${_airline} | 항공편 : ${_flightName}", style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF495057)),),
+                                Text("출발터미널 : ${_terminalNum} | 탑승구 : ${_portNum} | 탑승시간 : ${_boardingTime}", style: TextStyle(fontWeight: FontWeight.w800, color:Color(0xFF495057)),)
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column( // 총 여행시간
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text("총 여행"),
+                          Text("${_totalDate} 일", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25))
+                        ],
+                      ),
+                    ],
+                  ),
+                  // 수정 화면 띄우기
+                  Container(
+                    child: Expandable(
+                      firstChild: Text("여행 정보 수정", style: TextStyle(color: Colors.blue,)),
+                      secondChild: EditTravelPeriodWidget(),
+                      arrowLocation: ArrowLocation.left,
+                      arrowWidget: Icon(Icons.keyboard_arrow_up_sharp, color: Colors.blue,),
+                      boxShadow: [],
+                    ),
+                  )
+                ],
+              )
             )
-            ),
-          TravelEssentialsCheckList()
+          ),
+          TravelEssentialsCheckList(),
+          ClothingCheckList()
         ]
       )
     );
@@ -136,7 +146,6 @@ class _CheckListScreenState extends State<CheckListScreen> {
     TextEditingController _flightNameController = TextEditingController(text: this._flightName);
     TextEditingController _terminalNumController = TextEditingController(text: this._terminalNum);
     TextEditingController _portNumController = TextEditingController(text: this._portNum);
-    TextEditingController _boardingTimeController = TextEditingController(text: this._boardingTime);
 
     String tempTime = "";
 
@@ -337,6 +346,112 @@ class _CheckListScreenState extends State<CheckListScreen> {
     );
   }
 
+  Widget ClothingCheckList(){
+    TextEditingController _newClothesItemName = TextEditingController();
+    TextEditingController _newCLothesItemdescription = TextEditingController();
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: ExpansionTile(
+        collapsedBackgroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        title: Text("👕 의류"),
+        children: [
+          Column(children: this.ClothingList),
+          Padding(
+            padding: EdgeInsets.only(right: 16, left: 16, bottom: 16),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: (){
+                    //TODO 추가화면
+                    showModalBottomSheet(context: context, builder: ((builder){
+                      return Column(
+                          children: [
+                            Padding(padding: EdgeInsets.all(24), child: Row(children: [Text("의류 품목 추가", style: TextStyle(fontSize: 25),)],)),
+                            Container(
+                              padding: EdgeInsets.all(24),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween ,
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _newClothesItemName,
+                                          decoration: InputDecoration(labelText: '물건 이름', hintText: "예: 셔츠"),
+                                        ),
+                                      ),
+                                      SizedBox(width: 16), // 두 위젯 사이에 간격을 주기 위해
+                                      CounterButton(
+                                        loading: false,
+                                        onChange: (int val) {
+                                          setState(() {
+                                            _newCounterValue = val;
+                                            debugPrint("dd : ${_newCounterValue}, ${val}");
+                                          });
+                                        },
+                                        count: _newCounterValue,
+                                        countColor: Colors.blue,
+                                        buttonColor: Colors.blue,
+                                      ),
+                                  ],)
+
+
+                                ],
+                              ),
+                            ),
+                            Spacer(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                    child: Container(
+                                      color:Colors.black,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);  // 취소 버튼 클릭 시 BottomSheet 닫기
+                                        },
+                                        child: Text("취소", style: TextStyle(color: Colors.white),),
+                                      ),
+                                    )
+                                ),
+                                Expanded(
+                                    child: Container(
+                                      color:Colors.blue,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                             // 저장 버튼 클릭 시 리스트 추가
+
+                                          });
+                                          Navigator.pop(context);  // BottomSheet 닫기
+                                        },
+                                        child: Text("추가", style: TextStyle(color: Colors.white),),
+                                      ),
+                                    )),
+                              ],
+                            ),
+                          ],
+
+                      );
+                    }));
+                  },
+                  icon: Icon(Icons.add_box_outlined, color: Colors.blue,)
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 2),
+                  child: Text("추가하기",style: TextStyle(fontWeight: FontWeight.w800, color: Colors.blue, fontSize: 16)),
+                )
+              ],
+            ),
+          )
+        ]
+      ),
+    );
+  }
+
+
 }
 
 Widget TravelPeriod(String startDate, String fromAirport ,String endDate, String toAirport){
@@ -363,88 +478,4 @@ Widget TravelPeriod(String startDate, String fromAirport ,String endDate, String
           )
       )
   );
-}
-
-Widget _CheckListItem(String listName, String description) {
-  Map<String, String> clickableWords = {
-    "무비자": "비자sfdgggggggggfdgsfdgsfdgdgdgfgdfgsdgf가 없음.",
-    "단기체류": "객지에 가서 단기간 동안 머물러 있음.",
-    "장기체류": "객지에 가서 장기간 동안 머물러 있음.",
-  };
-
-  List<Widget> wordWidgets = [];
-
-  description.split(' ').forEach((word) {
-    if (clickableWords.keys.contains(word)) {
-      final key = GlobalKey();
-
-      wordWidgets.add(
-        GestureDetector(
-          key: key,
-          onLongPress: () {
-            // 롱 클릭 시 해당 단어 위치에 Tooltip을 표시
-            showTooltip(key, word, clickableWords[word]!);
-          },
-          child: Text(
-            '$word ',
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
-          ),
-        ),
-      );
-    } else {
-      wordWidgets.add(
-        Text('$word '),
-      );
-    }
-  });
-
-  return ExpansionTile(
-    title: Row(
-      children: [
-        //TODO checkBox 추가
-        Text("$listName", style: TextStyle(fontWeight: FontWeight.w800)),
-      ],
-    ),
-    backgroundColor: Colors.white,
-    children: [
-      Padding(
-        padding: EdgeInsets.only(right: 16, left: 16, bottom: 16),
-        child: Wrap(children: wordWidgets), // CheckList Item 설명 부분
-      ),
-    ],
-  );
-}
-
-// [참조] https://musubi-life.tistory.com/29
-// Tooltip을 띄우는 함수
-void showTooltip(GlobalKey key, String word, String definition) {
-  final RenderBox renderBox = key.currentContext!.findRenderObject() as RenderBox;
-  final position = renderBox.localToGlobal(Offset.zero); // 단어의 위치를 계산
-
-  final overlay = Overlay.of(key.currentContext!);
-  final entry = OverlayEntry(
-    builder: (context) => Positioned(
-      top: position.dy - 40, // 단어의 위쪽에 툴팁을 표시
-      left: position.dx,
-      child: Material(
-        borderRadius: BorderRadius.all(Radius.circular(5)),
-        color: Colors.amber,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 100),
-          child: Padding(
-            padding: EdgeInsets.all(8), child: Text(
-            '$word: \n$definition',
-            style: TextStyle(color: Colors.black),
-            ),
-          )
-        ),
-      ),
-    ),
-  );
-  overlay.insert(entry);
-
-  // 일정 시간 후 Tooltip을 자동으로 제거
-  Future.delayed(Duration(seconds: 2), () {
-    entry.remove();
-  });
 }
