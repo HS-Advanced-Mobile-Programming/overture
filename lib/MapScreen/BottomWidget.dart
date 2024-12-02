@@ -20,7 +20,7 @@ class _BottomWidgetState extends State<BottomWidget> {
     super.initState();
     datas = widget.datas.isNotEmpty ? widget.datas : [];
     isSelected = List<bool>.filled(datas.length + 1, false); // '전체' 버튼 포함
-    isSelected[0] = true; // 첫 번째 버튼 활성화
+    isSelected[0] = true; // 전체 버튼 활성화
   }
 
   @override

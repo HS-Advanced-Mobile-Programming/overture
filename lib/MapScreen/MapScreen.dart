@@ -69,6 +69,7 @@ class _MapScreenState extends State<MapScreen> {
       position: schedule.latLng,
       infoWindow: InfoWindow(
         title: schedule.title,
+        onTap: () {}, // TODO: 정보 수정
       ),
     ))
         .toSet();
