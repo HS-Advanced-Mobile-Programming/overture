@@ -36,10 +36,26 @@ class _BottomWidgetState extends State<BottomWidget> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5.0),
-              child: _buildButton(
-                isSelected: isSelected[0],
+              child: GestureDetector(
                 onTap: () => _onButtonPressed(0, null),
-                label: "전체",
+                child: Container(
+                  width: 90,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected[0] ? Colors.black : Colors.transparent,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: Text(
+                    "전체",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: isSelected[0] ? Colors.white : Colors.black,
+                      fontWeight: isSelected[0] ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
               ),
             ),
             for (int i = 0; i < uniqueDates.length; i++)
@@ -51,8 +67,8 @@ class _BottomWidgetState extends State<BottomWidget> {
                     i + 1,
                     uniqueDates[i],
                   ),
-                  label:
-                  "${uniqueDates[i].month}.${uniqueDates[i].day}(${getWeekdayString(uniqueDates[i].weekday)})",
+                  dateTime: uniqueDates[i],
+                  firstDay: uniqueDates[0],
                 ),
               ),
           ],
@@ -64,7 +80,8 @@ class _BottomWidgetState extends State<BottomWidget> {
   Widget _buildButton({
     required bool isSelected,
     required VoidCallback onTap,
-    required String label,
+    required DateTime dateTime,
+    required DateTime firstDay,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -77,15 +94,40 @@ class _BottomWidgetState extends State<BottomWidget> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.grey),
         ),
-        child: Text(
-          label,
+        child: _DateText(
+          firstDay: firstDay,
+          dateTime: dateTime,
+          isSelected: isSelected
+        ),
+      ),
+    );
+  }
+
+  Widget _DateText({
+    required DateTime firstDay,
+    required DateTime dateTime,
+    required bool isSelected,
+  }) {
+    return Column(
+      children: [
+        Text(
+          "${(dateTime.compareTo(firstDay)+1).toString()}일차", // TODO: 시간 변경할 것
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.black,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-      ),
+        Text(
+          "${dateTime.month}.${dateTime.day}(${getWeekdayString(dateTime.weekday)})",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 8,
+          ),
+        )
+      ],
     );
   }
 
