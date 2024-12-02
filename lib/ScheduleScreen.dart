@@ -7,9 +7,6 @@ class ScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Schedule Manager'),
-      ),
       body: ScheduleView(
         startDate: DateTime.now(),
         endDate: DateTime.now().add(const Duration(days: 7)),

@@ -22,7 +22,7 @@ class _ScheduleViewState extends State<ScheduleView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('일정 관리'),
+        title: const Text('📆 일정 관리', style: TextStyle(fontWeight: FontWeight.w700),),
       ),
       body: Column(
         children: [
