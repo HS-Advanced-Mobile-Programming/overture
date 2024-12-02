@@ -95,9 +95,9 @@ class _BottomWidgetState extends State<BottomWidget> {
           border: Border.all(color: Colors.grey),
         ),
         child: _DateText(
-          firstDay: firstDay,
-          dateTime: dateTime,
-          isSelected: isSelected
+            firstDay: firstDay,
+            dateTime: dateTime,
+            isSelected: isSelected
         ),
       ),
     );
@@ -111,7 +111,7 @@ class _BottomWidgetState extends State<BottomWidget> {
     return Column(
       children: [
         Text(
-          "${(dateTime.compareTo(firstDay)+1).toString()}일차", // TODO: 시간 변경할 것
+          "${(dateTime.difference(firstDay).inDays+1).toString()}일차", // TODO: 시간 변경할 것
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.black,
