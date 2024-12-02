@@ -6,7 +6,7 @@ class ScheduleForm extends StatefulWidget {
   final Schedule? schedule;
   final Function(Schedule) onSubmit;
 
-  ScheduleForm({this.schedule, required this.onSubmit});
+  const ScheduleForm({this.schedule, required this.onSubmit});
 
   @override
   _ScheduleFormState createState() => _ScheduleFormState();
@@ -36,12 +36,12 @@ class _ScheduleFormState extends State<ScheduleForm> {
     super.dispose();
   }
 
-  void _showPlaceSearch() {
+  void _showPlaceSearch(BuildContext context2) {
     showModalBottomSheet(
-      context: context,
+      context: context2,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
           height: MediaQuery.of(context).size.height * 0.9,
           child: PlaceSearch(
             onPlaceSelected: (Map<String, String> selectedPlace) {
@@ -64,15 +64,15 @@ class _ScheduleFormState extends State<ScheduleForm> {
         children: <Widget>[
           TextField(
             controller: _titleController,
-            decoration: InputDecoration(labelText: '제목'),
+            decoration: const InputDecoration(labelText: '제목'),
           ),
           TextField(
             controller: _contentController,
-            decoration: InputDecoration(labelText: '내용'),
+            decoration: const InputDecoration(labelText: '내용'),
           ),
           TextField(
             controller: _timeController,
-            decoration: InputDecoration(labelText: '시간'),
+            decoration: const InputDecoration(labelText: '시간'),
             onTap: () async {
               final TimeOfDay? picked = await showTimePicker(
                 context: context,
@@ -90,22 +90,21 @@ class _ScheduleFormState extends State<ScheduleForm> {
             decoration: InputDecoration(
               labelText: '장소',
               suffixIcon: IconButton(
-                icon: Icon(Icons.search),
-                onPressed: _showPlaceSearch,
+                icon: const Icon(Icons.search),
+                onPressed: () => _showPlaceSearch(context),
               ),
             ),
             readOnly: true,
-            onTap: _showPlaceSearch,
+            onTap: () => _showPlaceSearch(context),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           ElevatedButton(
             child: Text(widget.schedule == null ? '추가' : '수정'),
             onPressed: () {
               if (_titleController.text.isEmpty ||
-                  _placeController.text.isEmpty ||
                   _timeController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('제목, 장소, 시간을 모두 입력해주세요.')),
+                  const SnackBar(content: Text('제목, 장소, 시간을 모두 입력해주세요.')),
                 );
                 return;
               }
