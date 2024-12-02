@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:overture/ProfileScreen/AccountSettingScreen.dart';
 import 'package:overture/ProfileScreen/PrivacyPolicyScreen.dart';
 import 'package:overture/ProfileScreen/TermScreen.dart';
+import 'package:overture/SearchScreen/SearchScreen.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -83,6 +84,13 @@ class _SettingScreenState extends State<SettingScreen> {
           ListTile(
             title: const Text("이메일 문의하기"),
             trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: (){
+              Navigator.push(context,
+                MaterialPageRoute(
+                  builder: (context) => const PlaceSearchScreen(),
+                )
+              );
+            },
           ),
           const SectionTitle(title: "이용 약관"),
           ListTile(
