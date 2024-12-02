@@ -60,6 +60,8 @@ class _MapScreenState extends State<MapScreen> {
     _loadCustomIcons();
   }
 
+  static const List<String> colors = ["asset/img/marker/red/", "asset/img/marker/green/", "asset/img/marker/purple/",];
+
   // TODO: 로직 내부에서 정렬을 계속 진행하는데, 수정 필요 있음
   // BitmapDescriptor 아이콘을 로드하여 customIcons 리스트에 추가
   Future<void> _loadCustomIcons() async {
@@ -67,6 +69,7 @@ class _MapScreenState extends State<MapScreen> {
     schedules.sort((a, b) => a.time.compareTo(b.time));
 
     int count = 1;
+    int colorCount = 0;
 
     // 아이콘 로드 및 날짜별 count 초기화
     for (int i = 0; i < schedules.length; i++) {
@@ -75,12 +78,13 @@ class _MapScreenState extends State<MapScreen> {
               schedules[i].time.month != schedules[i - 1].time.month ||
               schedules[i].time.day != schedules[i - 1].time.day)) {
         count = 1; // 날짜가 바뀌면 count 초기화
+        colorCount++;
       }
 
       // BitmapDescriptor 로드
       final icon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(40, 40)),
-        'asset/img/marker$count.png',
+        const ImageConfiguration(size: Size(25, 25)),
+        '${colors[colorCount]}marker$count.png',
       );
 
       schedules[i].icon = icon; // 각 Schedule에 아이콘 할당
