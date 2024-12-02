@@ -9,7 +9,7 @@ class ScheduleView extends StatefulWidget {
   final DateTime startDate;
   final DateTime endDate;
 
-  ScheduleView({required this.startDate, required this.endDate});
+  const ScheduleView({super.key, required this.startDate, required this.endDate});
 
   @override
   _ScheduleViewState createState() => _ScheduleViewState();
@@ -17,7 +17,7 @@ class ScheduleView extends StatefulWidget {
 
 class _ScheduleViewState extends State<ScheduleView> {
   int _selectedDay = 1;
-
+  DateTime? _selectedDate;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,30 +33,39 @@ class _ScheduleViewState extends State<ScheduleView> {
             onSelectDay: (day) {
               setState(() {
                 _selectedDay = day;
+                _selectedDate = DateTime(
+                  widget.startDate.year,
+                  widget.startDate.month,
+                  widget.startDate.day + _selectedDay - 1,
+                );
               });
             },
           ),
           Expanded(
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
+                _selectedDate ??= widget.startDate.add(Duration(days: _selectedDay));
+                final filteredSchedules = scheduleModel.schedulesForDate(_selectedDate!);
+                final filteredScheduleModel = ScheduleModel();
+                filteredScheduleModel.addScheduleList(filteredSchedules);
                 return ListView.builder(
-                  itemCount: scheduleModel.schedules.length,
+                  itemCount: filteredScheduleModel.schedules.length,
                   itemBuilder: (context, index) {
-                    final schedule = scheduleModel.schedules[index];
+                    final schedule = filteredScheduleModel.schedules[index];
                     return ScheduleItem(
                       schedule: schedule,
                       onEdit: () {
                         _showScheduleForm(context, schedule: schedule);
                       },
                       onDelete: () {
-                        scheduleModel.deleteSchedule(schedule.id);
+                        filteredScheduleModel.deleteSchedule(schedule.id);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('일정이 삭제되었습니다.'),
+                            content: const Text('일정이 삭제되었습니다.'),
                             action: SnackBarAction(
                               label: '되돌리기',
                               onPressed: () {
-                                scheduleModel.addSchedule(schedule);
+                                filteredScheduleModel.addSchedule(schedule);
                               },
                             ),
                           ),
@@ -72,7 +81,7 @@ class _ScheduleViewState extends State<ScheduleView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showScheduleForm(context),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -87,6 +96,7 @@ class _ScheduleViewState extends State<ScheduleView> {
             bottom: MediaQuery.of(context).viewInsets.bottom, // 키보드 높이만큼 패딩 추가
           ),
           child: ScheduleForm(
+            selectedDate: _selectedDate!,
             schedule: schedule,
             onSubmit: (newSchedule) {
               final scheduleModel = Provider.of<ScheduleModel>(context, listen: false);

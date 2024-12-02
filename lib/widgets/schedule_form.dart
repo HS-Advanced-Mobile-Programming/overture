@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'place_search.dart';
 
 class ScheduleForm extends StatefulWidget {
+  final DateTime selectedDate;
   final Schedule? schedule;
   final Function(Schedule) onSubmit;
 
-  const ScheduleForm({this.schedule, required this.onSubmit});
+  const ScheduleForm({super.key, required this.selectedDate, this.schedule, required this.onSubmit});
 
   @override
   _ScheduleFormState createState() => _ScheduleFormState();
@@ -17,14 +19,27 @@ class _ScheduleFormState extends State<ScheduleForm> {
   late TextEditingController _contentController;
   late TextEditingController _timeController;
   late TextEditingController _placeController;
+  DateTime? _pickedTime;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.schedule?.title ?? '');
-    _contentController = TextEditingController(text: widget.schedule?.content ?? '');
+    _titleController =
+        TextEditingController(text: widget.schedule?.title ?? '');
+    _contentController =
+        TextEditingController(text: widget.schedule?.content ?? '');
     _timeController = TextEditingController(text: widget.schedule?.time ?? '');
-    _placeController = TextEditingController(text: widget.schedule?.place ?? '');
+    _placeController =
+        TextEditingController(text: widget.schedule?.place ?? '');
+
+    if (widget.schedule != null) {
+      _pickedTime = DateFormat('yyyy-MM-dd HH:mm').parse(widget.schedule!.time);
+      _timeController = TextEditingController(
+        text: DateFormat('HH:mm').format(_pickedTime!),
+      );
+    } else {
+      _timeController = TextEditingController();
+    }
   }
 
   @override
@@ -58,7 +73,7 @@ class _ScheduleFormState extends State<ScheduleForm> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -71,6 +86,7 @@ class _ScheduleFormState extends State<ScheduleForm> {
             decoration: const InputDecoration(labelText: '내용'),
           ),
           TextField(
+            readOnly: true,
             controller: _timeController,
             decoration: const InputDecoration(labelText: '시간'),
             onTap: () async {
@@ -80,7 +96,16 @@ class _ScheduleFormState extends State<ScheduleForm> {
               );
               if (picked != null) {
                 setState(() {
-                  _timeController.text = picked.format(context);
+                  final now = DateTime.now();
+                  _pickedTime = DateTime(
+                    now.year,
+                    widget.selectedDate.month,
+                    widget.selectedDate.day,
+                    picked.hour,
+                    picked.minute,
+                  );
+                  _timeController.text =
+                      DateFormat('HH:mm').format(_pickedTime!);
                 });
               }
             },
@@ -112,7 +137,9 @@ class _ScheduleFormState extends State<ScheduleForm> {
                 id: widget.schedule?.id ?? DateTime.now().toString(),
                 title: _titleController.text,
                 content: _contentController.text,
-                time: _timeController.text,
+                time: _pickedTime != null
+                    ? DateFormat('yyyy-MM-dd HH:mm').format(_pickedTime!)
+                    : '',
                 place: _placeController.text,
               );
               widget.onSubmit(schedule);
@@ -123,4 +150,3 @@ class _ScheduleFormState extends State<ScheduleForm> {
     );
   }
 }
-

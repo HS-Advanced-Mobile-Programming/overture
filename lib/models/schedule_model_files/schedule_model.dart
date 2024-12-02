@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 
 class Schedule {
   final String id;
@@ -26,6 +27,13 @@ class ScheduleModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addScheduleList(List<Schedule> scheduleList) {
+    for (Schedule schedule in scheduleList) {
+      _schedules.add(schedule);
+    }
+    notifyListeners();
+  }
+
   void editSchedule(Schedule schedule) {
     final index = _schedules.indexWhere((s) => s.id == schedule.id);
     if (index != -1) {
@@ -37,5 +45,18 @@ class ScheduleModel extends ChangeNotifier {
   void deleteSchedule(String id) {
     _schedules.removeWhere((schedule) => schedule.id == id);
     notifyListeners();
+  }
+
+  List<Schedule> schedulesForDate(DateTime selectedDate) {
+    return _schedules.where((schedule) {
+      try {
+        final scheduleDate = DateFormat('yyyy-MM-dd HH:mm').parse(schedule.time);
+        return scheduleDate.year == selectedDate.year &&
+            scheduleDate.month == selectedDate.month &&
+            scheduleDate.day == selectedDate.day;
+      } catch (e) {
+        return false;
+      }
+    }).toList();
   }
 }
