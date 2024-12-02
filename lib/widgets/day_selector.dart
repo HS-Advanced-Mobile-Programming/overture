@@ -7,7 +7,8 @@ class DaySelector extends StatefulWidget {
   final int selectedDay;
   final Function(int) onSelectDay;
 
-  DaySelector({
+  const DaySelector({
+    super.key,
     required this.startDate,
     required this.endDate,
     required this.selectedDay,
@@ -37,7 +38,7 @@ class _DaySelectorState extends State<DaySelector> {
     if (_scrollController.offset > 0) {
       _scrollController.animateTo(
         _scrollController.offset - 100,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
     }
@@ -47,7 +48,7 @@ class _DaySelectorState extends State<DaySelector> {
     if (_scrollController.offset < _scrollController.position.maxScrollExtent) {
       _scrollController.animateTo(
         _scrollController.offset + 100,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
     }
@@ -61,7 +62,7 @@ class _DaySelectorState extends State<DaySelector> {
     return Row(
       children: [
         IconButton(
-          icon: Icon(Icons.chevron_left),
+          icon: const Icon(Icons.chevron_left),
           onPressed: _scrollLeft,
         ),
         Expanded(
@@ -101,7 +102,7 @@ class _DaySelectorState extends State<DaySelector> {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.chevron_right),
+          icon: const Icon(Icons.chevron_right),
           onPressed: _scrollRight,
         ),
       ],
