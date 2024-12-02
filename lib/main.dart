@@ -9,6 +9,8 @@ import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
 
+import 'MenuTranslationScreen/MenuTranslationScreen.dart';
+
 //TODO main icon 움직이게
 
 void main() async {
@@ -73,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.all(5.0),
           child: Image.asset('asset/img/appicon.png')
         ),
-        actions: [IconButton(onPressed: null, icon: Icon(Icons.notifications_none,size: 40))],
+        actions: [IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (context) => ImagePickerScreen()));}, icon: Icon(Icons.camera_alt_outlined,size: 40))],
         backgroundColor: Color(0xFFF0F4F6)
       ),
       backgroundColor: Color(0xFFF0F4F6),
