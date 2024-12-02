@@ -25,7 +25,7 @@ class _EssentialCheckListItemState extends State<EssentialCheckListItem> {
   bool checked = false;
 
   // [참조] https://musubi-life.tistory.com/29
-// Tooltip을 띄우는 함수
+  // Tooltip을 띄우는 함수
   void showTooltip(GlobalKey key, String word, String definition) {
     final RenderBox renderBox = key.currentContext!.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero); // 단어의 위치를 계산

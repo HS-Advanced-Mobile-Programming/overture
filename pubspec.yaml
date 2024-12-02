@@ -80,6 +80,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - asset/img/
+    - asset/img/marker/red/
+    - asset/img/marker/green/
+    - asset/img/marker/purple/
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
