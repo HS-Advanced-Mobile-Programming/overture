@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class DaySelector extends StatefulWidget {
   final DateTime startDate;
@@ -54,7 +55,8 @@ class _DaySelectorState extends State<DaySelector> {
 
   @override
   Widget build(BuildContext context) {
-    final int totalDays = widget.endDate.difference(widget.startDate).inDays + 1;
+    final int totalDays =
+        widget.endDate.difference(widget.startDate).inDays + 1;
 
     return Row(
       children: [
@@ -63,18 +65,29 @@ class _DaySelectorState extends State<DaySelector> {
           onPressed: _scrollLeft,
         ),
         Expanded(
-          child: Container(
-            height: 50,
+          child: SizedBox(
+            height: 60,
             child: ListView.builder(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               itemCount: totalDays,
               itemBuilder: (context, index) {
                 final day = index + 1;
+                DateTime n = widget.startDate.add(Duration(days: index));
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.all(1.0),
                   child: ChoiceChip(
-                    label: Text('Day $day'),
+                    showCheckmark: false,
+                    label: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Day $day',
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(DateFormat('MM.dd(E)', 'ko_KR').format(n))
+                      ],
+                    ),
                     selected: widget.selectedDay == day,
                     onSelected: (selected) {
                       if (selected) {
@@ -95,4 +108,3 @@ class _DaySelectorState extends State<DaySelector> {
     );
   }
 }
-

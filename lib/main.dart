@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
 import 'package:overture/MapScreen/MapScreen.dart';
@@ -16,6 +17,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized;
   await dotenv.load(fileName: ".env");
+  await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
   runApp(
     MultiProvider(

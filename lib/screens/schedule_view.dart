@@ -21,8 +21,10 @@ class _ScheduleViewState extends State<ScheduleView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('📆 일정 관리', style: TextStyle(fontWeight: FontWeight.w700),),
+        backgroundColor: Colors.white,
+        title: const Text('📆 일정 관리', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: Column(
         children: [
