@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
-import 'package:overture/ProfileScreen.dart';
+import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
 
@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const CheckListScreen(),
     const ScheduleScreen(),
     const TravelScreen(),
-    const ProfileScreen(),
+    const SettingScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -71,9 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Image.asset('asset/img/appicon.png')
         ),
         actions: [IconButton(onPressed: null, icon: Icon(Icons.notifications_none,size: 40))],
-        backgroundColor: Color(0xFFF0F4F6)
+        backgroundColor: const Color(0xFFF0F4F6)
       ),
-      backgroundColor: Color(0xFFF0F4F6),
+      backgroundColor: const Color(0xFFF0F4F6),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
