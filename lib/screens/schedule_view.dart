@@ -82,17 +82,22 @@ class _ScheduleViewState extends State<ScheduleView> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return ScheduleForm(
-          schedule: schedule,
-          onSubmit: (newSchedule) {
-            final scheduleModel = Provider.of<ScheduleModel>(context, listen: false);
-            if (schedule == null) {
-              scheduleModel.addSchedule(newSchedule);
-            } else {
-              scheduleModel.editSchedule(newSchedule);
-            }
-            Navigator.pop(context);
-          },
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom, // 키보드 높이만큼 패딩 추가
+          ),
+          child: ScheduleForm(
+            schedule: schedule,
+            onSubmit: (newSchedule) {
+              final scheduleModel = Provider.of<ScheduleModel>(context, listen: false);
+              if (schedule == null) {
+                scheduleModel.addSchedule(newSchedule);
+              } else {
+                scheduleModel.editSchedule(newSchedule);
+              }
+              Navigator.pop(context);
+            },
+          ),
         );
       },
     );
