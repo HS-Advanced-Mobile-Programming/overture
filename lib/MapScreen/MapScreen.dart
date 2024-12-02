@@ -45,11 +45,33 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
+  DateTime? selectedDate; // 선택된 날짜
 
   final LatLng _center = const LatLng(37.63695556, 127.0277194);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+  }
+
+  // 선택된 날짜에 해당하는 Marker 필터링
+  Set<Marker> getMarkers() {
+    final filteredSchedules = selectedDate == null
+        ? sampleData
+        : sampleData.where((schedule) {
+      return schedule.time.year == selectedDate!.year &&
+          schedule.time.month == selectedDate!.month &&
+          schedule.time.day == selectedDate!.day;
+    }).toList();
+
+    return filteredSchedules
+        .map((schedule) => Marker(
+      markerId: MarkerId(schedule.scheduleId.toString()),
+      position: schedule.latLng,
+      infoWindow: InfoWindow(
+        title: schedule.title,
+      ),
+    ))
+        .toSet();
   }
 
   @override
@@ -65,22 +87,17 @@ class _MapScreenState extends State<MapScreen> {
               target: _center,
               zoom: 11.0,
             ),
-            markers: {
-              ...sampleData.map((schedule) => Marker(
-                markerId: MarkerId(schedule.scheduleId.toString()),
-                position: schedule.latLng,
-                infoWindow: InfoWindow(
-                  title: schedule.title,
-                  // snippet: schedule.time.toString(),
-                  onTap: (){
-                    print("클릭");
-                  }
-                ),
-              ))
-            },
+            markers: getMarkers(),
           ),
         ),
-        BottomWidget(datas: sampleData),
+        BottomWidget(
+          datas: sampleData,
+          onDateSelected: (DateTime? date) {
+            setState(() {
+              selectedDate = date;
+            });
+          },
+        ),
       ],
     );
   }

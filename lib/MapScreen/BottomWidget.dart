@@ -3,8 +3,9 @@ import 'package:overture/MapScreen/MapScreen.dart';
 
 class BottomWidget extends StatefulWidget {
   final List<Schedule> datas; // 외부에서 전달받을 데이터
+  final ValueChanged<DateTime?> onDateSelected; // 날짜 선택 콜백
 
-  const BottomWidget({required this.datas, super.key});
+  const BottomWidget({required this.datas, required this.onDateSelected, super.key});
 
   @override
   State<BottomWidget> createState() => _BottomWidgetState();
@@ -24,33 +25,34 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // 날짜별로 버튼 생성 (중복 제거)
     final uniqueDates = _getUniqueDates(datas);
 
     return Container(
       color: const Color(0xFFF0F4F6),
       padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // 가로 스크롤 활성화
+        scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            // '전체' 버튼
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5.0),
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
               child: _buildButton(
                 isSelected: isSelected[0],
-                onTap: () => _onButtonPressed(0),
+                onTap: () => _onButtonPressed(0, null),
                 label: "전체",
               ),
             ),
-            // 고유 날짜 버튼
             for (int i = 0; i < uniqueDates.length; i++)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: _buildButton(
                   isSelected: isSelected[i + 1],
-                  onTap: () => _onButtonPressed(i + 1),
-                  label: uniqueDates[i],
+                  onTap: () => _onButtonPressed(
+                    i + 1,
+                    uniqueDates[i],
+                  ),
+                  label:
+                  "${uniqueDates[i].month}.${uniqueDates[i].day}(${getWeekdayString(uniqueDates[i].weekday)})",
                 ),
               ),
           ],
@@ -59,7 +61,6 @@ class _BottomWidgetState extends State<BottomWidget> {
     );
   }
 
-  // 개별 버튼 생성 메서드
   Widget _buildButton({
     required bool isSelected,
     required VoidCallback onTap,
@@ -68,8 +69,8 @@ class _BottomWidgetState extends State<BottomWidget> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 90, // 버튼 너비 조정
-        height: 40, // 버튼 높이 조정
+        width: 90,
+        height: 40,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? Colors.black : Colors.transparent,
@@ -88,33 +89,22 @@ class _BottomWidgetState extends State<BottomWidget> {
     );
   }
 
-  // 버튼 클릭 이벤트 처리
-  void _onButtonPressed(int index) {
+  void _onButtonPressed(int index, DateTime? date) {
     setState(() {
       for (int i = 0; i < isSelected.length; i++) {
         isSelected[i] = false;
       }
       isSelected[index] = true;
     });
+    widget.onDateSelected(date);
   }
 
-  void updateData(List<Schedule> newDatas) {
-    setState(() {
-      datas = newDatas;
-      isSelected = List<bool>.filled(datas.length + 1, false);
-      isSelected[0] = true;
-    });
-  }
-
-  // 날짜별 고유 값 추출 메서드
-  List<String> _getUniqueDates(List<Schedule> schedules) {
-    final uniqueDates = <String>{}; // Set으로 중복 제거
+  List<DateTime> _getUniqueDates(List<Schedule> schedules) {
+    final uniqueDates = <DateTime>{};
     for (var schedule in schedules) {
-      final dateString =
-          "${schedule.time.month}.${schedule.time.day}(${getWeekdayString(schedule.time.weekday)})";
-      uniqueDates.add(dateString);
+      uniqueDates.add(DateTime(schedule.time.year, schedule.time.month, schedule.time.day));
     }
-    return uniqueDates.toList();
+    return uniqueDates.toList()..sort();
   }
 
   String getWeekdayString(int weekday) {
