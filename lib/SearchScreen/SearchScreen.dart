@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../MapScreen/entity/entity.dart';
 import 'PlaceDetailsModal.dart';
 
 class PlaceSearchScreen extends StatefulWidget {
@@ -284,12 +285,15 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                 final String address = place['formatted_address'] ?? '주소 없음';
                 return GestureDetector(
                   onTap: () {
-                    Navigator.pop(context, {
-                      'name': name,
-                      'address': address,
-                      'rating': rating,
-                      'place_id': place['place_id'],
-                    });
+                    Navigator.pop(
+                      context,
+                      Place(
+                        name: name,
+                        address: address,
+                        rating: rating,
+                        placeId: place['place_id'],
+                      ),
+                    );
                   },
                   onLongPress: () => _fetchReviewsAndDetails(place['place_id']),
                   child: ListTile(

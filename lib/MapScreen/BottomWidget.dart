@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:overture/MapScreen/MapScreen.dart';
+
+import 'entity/entity.dart';
 
 class BottomWidget extends StatefulWidget {
   final List<Schedule> datas; // 외부에서 전달받을 데이터
