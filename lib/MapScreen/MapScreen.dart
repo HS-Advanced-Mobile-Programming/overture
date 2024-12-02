@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'TopSheet.dart';
 import 'BottomWidget.dart';
@@ -48,7 +49,9 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController mapController;
+  late GoogleMapController _controller;
+  bool _myLocationEnabled = false;
+
   DateTime? selectedDate; // 선택된 날짜
   final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
 
@@ -57,7 +60,22 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeLocationPermissions(); // 위치 권한 초기화
     _loadCustomIcons();
+  }
+
+// 위치 권한 확인 및 요청 메서드
+  Future<void> _initializeLocationPermissions() async {
+    LocationPermission status = await Geolocator.checkPermission();
+    if (status == LocationPermission.denied) {
+      status = await Geolocator.requestPermission();
+      if (status == LocationPermission.denied || status == LocationPermission.deniedForever) {
+        // 사용자가 위치 권한을 거부했을 때 처리
+        print("위치 권한이 거부되었습니다.");
+        return;
+      }
+    }
+    print("위치 권한이 허용되었습니다.");
   }
 
   static const List<String> colors = ["asset/img/marker/red/", "asset/img/marker/green/", "asset/img/marker/purple/",];
@@ -96,7 +114,7 @@ class _MapScreenState extends State<MapScreen> {
 
 
   void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    _controller = controller;
   }
 
   // 선택된 날짜에 해당하는 Marker 필터링
@@ -122,20 +140,53 @@ class _MapScreenState extends State<MapScreen> {
         .toSet();
   }
 
+  Future<void> _getCurrentLocation() async {
+    final position = await Geolocator.getCurrentPosition();
+    final cameraPosition = CameraPosition(
+      target: LatLng(position.latitude, position.longitude),
+      zoom: 18,
+    );
+    _controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    setState(() {
+      _myLocationEnabled = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         const TopSheet(),
         Expanded(
-          child: GoogleMap(
-            mapType: MapType.normal,
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 11.0,
-            ),
-            markers: getMarkers(),
+          child:
+          Stack(
+            children: [
+              GoogleMap(
+                mapType: MapType.normal,
+                onMapCreated: _onMapCreated,
+                initialCameraPosition: CameraPosition(
+                  target: _center,
+                  zoom: 11.0,
+                ),
+                myLocationEnabled: _myLocationEnabled,
+                myLocationButtonEnabled: false,
+                markers: getMarkers(),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: FloatingActionButton(
+                  onPressed: _getCurrentLocation,
+                  foregroundColor: Colors.black,
+                  backgroundColor: Color(0xFFF0F4F6),
+                  elevation: 8, // 그림자 크기
+                  child: Icon(Icons.my_location),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50), // 버튼 모서리 둥글기
+                  ),
+                ),
+              ),
+            ]
           ),
         ),
         BottomWidget(

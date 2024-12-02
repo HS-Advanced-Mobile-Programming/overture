@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
 import 'package:overture/MapScreen/MapScreen.dart';
@@ -15,6 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized;
   await dotenv.load(fileName: ".env");
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
+
   runApp(const MyApp());
 }
 
