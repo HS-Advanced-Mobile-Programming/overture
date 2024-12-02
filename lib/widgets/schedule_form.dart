@@ -48,7 +48,6 @@ class _ScheduleFormState extends State<ScheduleForm> {
               setState(() {
                 _placeController.text = selectedPlace['name'] ?? '';
               });
-              Navigator.pop(context);
             },
           ),
         );
