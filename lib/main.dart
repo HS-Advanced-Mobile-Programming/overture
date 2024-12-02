@@ -2,11 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
 import 'package:overture/MapScreen/MapScreen.dart';
-import 'package:overture/ProfileScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
@@ -57,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const ScheduleScreen(),
     const TravelScreen(),
     const SettingScreen(),
-    const ProfileScreen(),
     const MapScreen()
   ];
 
