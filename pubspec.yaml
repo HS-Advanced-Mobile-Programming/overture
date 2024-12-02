@@ -44,6 +44,8 @@ dependencies:
   flutter_dotenv: ^5.2.1
   json_annotation: ^4.9.0
   flutter_animated_icons: ^1.0.1
+  google_maps_flutter: ^2.10.0
+  geolocator: ^13.0.2
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +77,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - asset/img/
+    - asset/img/marker/red/
+    - asset/img/marker/green/
+    - asset/img/marker/purple/
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
