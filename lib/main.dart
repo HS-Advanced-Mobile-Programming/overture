@@ -12,6 +12,8 @@ import 'package:overture/TravelScreen.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
 
+import 'ExplainButton/ExplainButton.dart';
+
 //TODO main icon 움직이게
 
 void main() async {
@@ -29,13 +31,24 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<StatefulWidget> createState() => _MyApp();
+}
+
+class _MyApp extends State<MyApp> {
+  @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: HomeScreen(),
+    return MaterialApp(
+      home: //HomeScreen(),
+        Stack(
+        children: [
+          const HomeScreen(),
+          ExplainButton(),
+        ]
+      )
     );
   }
 }
