@@ -63,28 +63,27 @@ class _ScheduleViewState extends State<ScheduleView> {
                       padding: const EdgeInsets.all(15),
                       child: Container(
                           child: ScheduleItem(
-                            schedule: schedule,
-                            onEdit: () {
-                              _showScheduleForm(context, schedule: schedule);
-                            },
-                            onDelete: () {
-                              filteredScheduleModel.deleteSchedule(schedule.id);
-                              scheduleModel.deleteSchedule(schedule.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('일정이 삭제되었습니다.'),
-                                  action: SnackBarAction(
-                                    label: '되돌리기',
-                                    onPressed: () {
-                                      filteredScheduleModel
-                                          .addSchedule(schedule);
-                                      scheduleModel.addSchedule(schedule);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          )),
+                        schedule: schedule,
+                        onEdit: () {
+                          _showScheduleForm(context, schedule: schedule);
+                        },
+                        onDelete: () {
+                          filteredScheduleModel.deleteSchedule(schedule.id);
+                          scheduleModel.deleteSchedule(schedule.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('일정이 삭제되었습니다.'),
+                              action: SnackBarAction(
+                                label: '되돌리기',
+                                onPressed: () {
+                                  filteredScheduleModel.addSchedule(schedule);
+                                  scheduleModel.addSchedule(schedule);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      )),
                     );
                   },
                 );
@@ -118,24 +117,35 @@ class _ScheduleViewState extends State<ScheduleView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom, // 키보드 높이만큼 패딩 추가
-          ),
-          child: ScheduleForm(
-            selectedDate: _selectedDate!,
-            schedule: schedule,
-            onSubmit: (newSchedule) {
-              final scheduleModel =
-                  Provider.of<ScheduleModel>(context, listen: false);
-              if (schedule == null) {
-                scheduleModel.addSchedule(newSchedule);
-              } else {
-                scheduleModel.editSchedule(newSchedule);
-              }
-              Navigator.pop(context);
-            },
+        return SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(height: 50, color: Colors.transparent),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context)
+                      .viewInsets
+                      .bottom, // 키보드 높이만큼 패딩 추가
+                ),
+                child: ScheduleForm(
+                  selectedDate: _selectedDate!,
+                  schedule: schedule,
+                  onSubmit: (newSchedule) {
+                    final scheduleModel =
+                        Provider.of<ScheduleModel>(context, listen: false);
+                    if (schedule == null) {
+                      scheduleModel.addSchedule(newSchedule);
+                    } else {
+                      scheduleModel.editSchedule(newSchedule);
+                    }
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
