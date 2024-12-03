@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
@@ -39,14 +40,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyApp extends State<MyApp> {
+  FlutterTts tts = FlutterTts();
+  TextEditingController ttsController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    tts.setLanguage('ko-KR');
+    tts.setSpeechRate(0.4);
+
     return MaterialApp(
       home: //HomeScreen(),
         Stack(
         children: [
           const HomeScreen(),
-          ExplainButton(),
+          ExplainButton(tts: tts),
         ]
       )
     );
