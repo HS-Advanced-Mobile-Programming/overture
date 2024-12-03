@@ -70,19 +70,21 @@ class _DaySelectorState extends State<DaySelector> {
 
     return Row(
       children: [
-        SizedBox(width: 10,),
-    ClipRect(
-    child: Align(
-    alignment: Alignment.center,
-      heightFactor: 0.5,
-      widthFactor: 0.5,
-      child: IconButton(
-            iconSize: 50,
-            icon: const Icon(Icons.chevron_left),
-            onPressed: _scrollLeft,
+        SizedBox(
+          width: 10,
+        ),
+        ClipRect(
+          child: Align(
+            alignment: Alignment.center,
+            heightFactor: 0.5,
+            widthFactor: 0.5,
+            child: IconButton(
+              iconSize: 50,
+              icon: const Icon(Icons.chevron_left),
+              onPressed: _scrollLeft,
+            ),
           ),
         ),
-    ),
         Expanded(
           child: SizedBox(
             height: 60,
@@ -135,20 +137,21 @@ class _DaySelectorState extends State<DaySelector> {
             ),
           ),
         ),
-
-          ClipRect(
-    child: Align(
-    alignment: Alignment.center,
-    heightFactor: 0.5,
-    widthFactor: 0.5,
-    child: IconButton(
-      iconSize: 50,
-      icon: const Icon(Icons.chevron_right),
-      onPressed: _scrollRight,
-    ),
-    ),
-    ),
-        SizedBox(width: 10,),
+        ClipRect(
+          child: Align(
+            alignment: Alignment.center,
+            heightFactor: 0.5,
+            widthFactor: 0.5,
+            child: IconButton(
+              iconSize: 50,
+              icon: const Icon(Icons.chevron_right),
+              onPressed: _scrollRight,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 10,
+        ),
       ],
     );
   }
