@@ -34,7 +34,9 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCustomIcons();
+    preloadBitmapDescriptors().then((_) {
+      setState(() {}); // 로드 완료 후 상태 갱신
+    });
   }
 
   static const List<String> colors = [
@@ -44,41 +46,28 @@ class _MapScreenState extends State<MapScreen> {
   ];
 
   // BitmapDescriptor 아이콘을 로드하여 customIcons 리스트에 추가
-  Future<void> _loadCustomIcons() async {
-    // 리스트를 날짜 순으로 정렬
-    schedules.sort((a, b) => a.time.compareTo(b.time));
-
+  Future<void> preloadBitmapDescriptors() async {
     int count = 1;
     int colorCount = 0;
 
-    // 아이콘 로드 및 날짜별 count 초기화
+    schedules.sort((a, b) => a.time.compareTo(b.time));
+
     for (int i = 0; i < schedules.length; i++) {
-      if (i > 0 &&
-          (schedules[i].time.year != schedules[i - 1].time.year ||
-              schedules[i].time.month != schedules[i - 1].time.month ||
-              schedules[i].time.day != schedules[i - 1].time.day)) {
+      if (i > 0 && schedules[i].time.day != schedules[i - 1].time.day) {
         count = 1; // 날짜가 바뀌면 count 초기화
         colorCount++;
       }
 
-      // BitmapDescriptor 로드
-      final icon = await BitmapDescriptor.asset(
+      final icon = await BitmapDescriptor.fromAssetImage(
         const ImageConfiguration(size: Size(25, 25)),
         '${colors[colorCount]}marker$count.png',
       );
 
-      schedules[i].icon = icon; // 각 Schedule에 아이콘 할당
+      customIcons.add(icon);
       count++;
     }
-
-    setState(() {}); // UI 업데이트
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    _controller = controller;
-  }
-
-  // 선택된 날짜에 해당하는 Marker 필터링
   Set<Marker> getMarkers() {
     final filteredSchedules = selectedDate == null
         ? schedules
@@ -88,17 +77,24 @@ class _MapScreenState extends State<MapScreen> {
           schedule.time.day == selectedDate!.day;
     }).toList();
 
-    return filteredSchedules
-        .map((schedule) => Marker(
-      markerId: MarkerId(schedule.scheduleId.toString()),
-      position: schedule.latLng,
-      icon: schedule.icon ?? BitmapDescriptor.defaultMarker, // 각 Schedule의 아이콘 사용
-      infoWindow: InfoWindow(
-        title: schedule.title,
-        onTap: () {}, // TODO: 정보 수정
-      ),
-    ))
-        .toSet();
+    return filteredSchedules.asMap().entries.map((entry) {
+      final index = entry.key;
+      final schedule = entry.value;
+
+      return Marker(
+        markerId: MarkerId(schedule.id.toString()),
+        position: schedule.latLng,
+        icon: customIcons.isNotEmpty ? customIcons[index] : BitmapDescriptor.defaultMarker,
+        infoWindow: InfoWindow(
+          title: schedule.title,
+          onTap: () {}, // TODO: 정보 수정
+        ),
+      );
+    }).toSet();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _controller = controller;
   }
 
   Future<void> _getCurrentLocation() async {

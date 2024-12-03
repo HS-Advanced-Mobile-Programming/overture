@@ -1,27 +1,25 @@
+import 'dart:math';
+
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Schedule {
-  final int scheduleId;
-  final int userId;
+  final int id;
+  final String content;
   final String title;
+  final String place;
   final DateTime time;
   final LatLng latLng;
-  BitmapDescriptor? icon; // 아이콘 추가
 
   Schedule({
-    required this.scheduleId,
-    required this.userId,
+    required this.id,
+    required this.content,
+    required this.place,
     required this.title,
     required this.time,
     required this.latLng,
-    this.icon,
   });
-
-  @override
-  String toString() {
-    return 'Schedule(scheduleId: $scheduleId, userId: $userId, title: "$title", time: $time, latLng: $latLng)';
-  }
 }
+
 
 class Place {
   final String name;
@@ -60,4 +58,25 @@ class Place {
   String toString() {
     return 'Place(name: $name, address: $address, rating: $rating, placeId: $placeId)';
   }
+}
+
+/// 두 지점 간의 거리 계산 (Haversine Formula)
+double calculateDistance(LatLng start, LatLng end) {
+  const R = 6371; // 지구 반지름 (km)
+
+  // 위도와 경도를 라디안으로 변환
+  double dLat = _degreesToRadians(end.latitude - start.latitude);
+  double dLon = _degreesToRadians(end.longitude - start.longitude);
+
+  double a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(_degreesToRadians(start.latitude)) * cos(_degreesToRadians(end.latitude)) *
+          sin(dLon / 2) * sin(dLon / 2);
+
+  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return R * c; // 거리 (단위: km)
+}
+
+/// 도(degree)를 라디안으로 변환
+double _degreesToRadians(double degrees) {
+  return degrees * pi / 180;
 }

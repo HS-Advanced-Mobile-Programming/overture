@@ -8,13 +8,9 @@ class ExplainButton extends StatelessWidget {
 
   const ExplainButton({required this.tts, super.key});
 
-  void updateInnerPlace(Place? value) {
-    innerPlace.value = value; // 상태 업데이트
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Place?>(
+    return ValueListenableBuilder<String?>(
       valueListenable: innerPlace, // innerPlace를 Place? 타입으로 사용
       builder: (context, value, child) {
         return Positioned(
@@ -29,7 +25,7 @@ class ExplainButton extends StatelessWidget {
             onPressed: () {
               // 상태를 변경하여 UI 업데이트 테스트
               if (value != null) {
-                tts.speak("${value.name}에 진입하였습니다."); // TTS 실행
+                tts.speak("${value}에 진입하였습니다."); // TTS 실행
               } else {
                 tts.speak("현재 장소 정보가 없습니다."); // 값이 null일 때 처리
               }

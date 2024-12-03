@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'ExplainButton/ExplainButton.dart';
 import 'GlobalState/global.dart';
 import 'HomeScreen/HomeScreen.dart';
+import 'MapScreen/entity/entity.dart';
 
 //TODO main icon 움직이게
 
@@ -53,7 +54,6 @@ class _MyApp extends State<MyApp> {
         permission == LocationPermission.deniedForever) {
       permission = await Geolocator.requestPermission();
     }
-
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
       // 실시간 위치 스트림 구독
@@ -65,6 +65,15 @@ class _MyApp extends State<MyApp> {
       ).listen((Position position) {
         myPos = LatLng(position.latitude, position.longitude); // 위치 업데이트
         print("현재 위치: $myPos");
+
+        schedules.forEach((schedule) {
+          if(schedule.time.isAfter(DateTime.now())) return;
+          else if(schedule.time.compareTo(DateTime.now()) == 0) {
+            if(calculateDistance(schedule.latLng, myPos) <= 50) {
+              innerPlace.value = schedule.place;
+            }
+          }
+        });
       });
     } else {
       print("위치 권한이 필요합니다.");
