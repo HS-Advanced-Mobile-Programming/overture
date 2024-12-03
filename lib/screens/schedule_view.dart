@@ -55,38 +55,51 @@ class _ScheduleViewState extends State<ScheduleView> {
                     scheduleModel.schedulesForDate(_selectedDate!);
                 final filteredScheduleModel = ScheduleModel();
                 filteredScheduleModel.addScheduleList(filteredSchedules);
-                return ListView.builder(
-                  itemCount: filteredScheduleModel.schedules.length,
-                  itemBuilder: (context, index) {
-                    final schedule = filteredScheduleModel.schedules[index];
-                    return Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Container(
-                          child: ScheduleItem(
-                        schedule: schedule,
-                        onEdit: () {
-                          _showScheduleForm(context, schedule: schedule);
-                        },
-                        onDelete: () {
-                          filteredScheduleModel.deleteSchedule(schedule.id);
-                          scheduleModel.deleteSchedule(schedule.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('일정이 삭제되었습니다.'),
-                              action: SnackBarAction(
-                                label: '되돌리기',
-                                onPressed: () {
-                                  filteredScheduleModel.addSchedule(schedule);
-                                  scheduleModel.addSchedule(schedule);
-                                },
-                              ),
-                            ),
+                return filteredScheduleModel.schedules.isEmpty
+                    ? const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "이 날짜에 예정된 일정이 없습니다.",
+                            style: TextStyle(color: Color(0xff5F5F5F)),
+                          )
+                        ],
+                      )
+                    : ListView.builder(
+                        itemCount: filteredScheduleModel.schedules.length,
+                        itemBuilder: (context, index) {
+                          final schedule =
+                              filteredScheduleModel.schedules[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: Container(
+                                child: ScheduleItem(
+                              schedule: schedule,
+                              onEdit: () {
+                                _showScheduleForm(context, schedule: schedule);
+                              },
+                              onDelete: () {
+                                filteredScheduleModel
+                                    .deleteSchedule(schedule.id);
+                                scheduleModel.deleteSchedule(schedule.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('일정이 삭제되었습니다.'),
+                                    action: SnackBarAction(
+                                      label: '되돌리기',
+                                      onPressed: () {
+                                        filteredScheduleModel
+                                            .addSchedule(schedule);
+                                        scheduleModel.addSchedule(schedule);
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            )),
                           );
                         },
-                      )),
-                    );
-                  },
-                );
+                      );
               },
             ),
           ),
