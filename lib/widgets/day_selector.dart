@@ -70,10 +70,19 @@ class _DaySelectorState extends State<DaySelector> {
 
     return Row(
       children: [
-        IconButton(
-          icon: const Icon(Icons.chevron_left),
-          onPressed: _scrollLeft,
+        SizedBox(width: 10,),
+    ClipRect(
+    child: Align(
+    alignment: Alignment.center,
+      heightFactor: 0.5,
+      widthFactor: 0.5,
+      child: IconButton(
+            iconSize: 50,
+            icon: const Icon(Icons.chevron_left),
+            onPressed: _scrollLeft,
+          ),
         ),
+    ),
         Expanded(
           child: SizedBox(
             height: 60,
@@ -88,13 +97,13 @@ class _DaySelectorState extends State<DaySelector> {
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: ChoiceChip(
                     backgroundColor: Colors.white,
-                    selectedColor: Color(0xff1C0F13),
+                    selectedColor: const Color(0xff1C0F13),
                     showCheckmark: false,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22.0),
-                        side: BorderSide(color: Color(0xffC7C7C7))),
+                        side: const BorderSide(color: Color(0xffC7C7C7))),
                     label: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 7.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 7.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -126,10 +135,20 @@ class _DaySelectorState extends State<DaySelector> {
             ),
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.chevron_right),
-          onPressed: _scrollRight,
-        ),
+
+          ClipRect(
+    child: Align(
+    alignment: Alignment.center,
+    heightFactor: 0.5,
+    widthFactor: 0.5,
+    child: IconButton(
+      iconSize: 50,
+      icon: const Icon(Icons.chevron_right),
+      onPressed: _scrollRight,
+    ),
+    ),
+    ),
+        SizedBox(width: 10,),
       ],
     );
   }
