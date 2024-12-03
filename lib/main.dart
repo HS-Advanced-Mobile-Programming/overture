@@ -2,12 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
 import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
+import 'package:overture/models/schedule_model_files/schedule_model.dart';
+import 'package:provider/provider.dart';
 
 import 'MenuTranslationScreen/MenuTranslationScreen.dart';
 
@@ -16,9 +19,16 @@ import 'MenuTranslationScreen/MenuTranslationScreen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized;
   await dotenv.load(fileName: ".env");
+  await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
-
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ScheduleModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
