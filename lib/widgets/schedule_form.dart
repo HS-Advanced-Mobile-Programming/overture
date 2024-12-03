@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:overture/widgets/schedule_bottom_sheet.dart';
@@ -25,6 +26,7 @@ class _ScheduleFormState extends State<ScheduleForm> {
   late TextEditingController _timeController;
   late TextEditingController _placeController;
   DateTime? _pickedTime;
+  FToast fToast = FToast();
 
   @override
   void initState() {
@@ -45,6 +47,9 @@ class _ScheduleFormState extends State<ScheduleForm> {
     } else {
       _timeController = TextEditingController();
     }
+    fToast = FToast();
+    // if you want to use context from globally instead of content we need to pass navigatorKey.currentContext!
+    fToast.init(context);
   }
 
   @override
@@ -75,6 +80,32 @@ class _ScheduleFormState extends State<ScheduleForm> {
     );
   }
 
+  Widget _showToast(String title) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25.0),
+        color: Colors.redAccent,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.warning_amber,
+            color: Colors.white,
+          ),
+          SizedBox(
+            width: 12.0,
+          ),
+          Text(
+            title,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScheduleBottomSheet(
@@ -85,10 +116,46 @@ class _ScheduleFormState extends State<ScheduleForm> {
             color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
       ),
       buttonOnPressed: () {
-        if (_titleController.text.isEmpty || _timeController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('제목, 장소, 시간을 모두 입력해주세요.')),
-          );
+        if (_titleController.text.isEmpty) {
+          fToast.showToast(
+              child: _showToast("제목을 입력하세요"),
+              gravity: ToastGravity.BOTTOM,
+              toastDuration: Duration(seconds: 2),
+              positionedToastBuilder: (context, child) {
+                return Positioned(
+                  top: 760.0,
+                  left: 100.0,
+                  child: child,
+                );
+              });
+          return;
+        }
+        if (_timeController.text.isEmpty) {
+          fToast.showToast(
+              child: _showToast("시간을 입력하세요"),
+              gravity: ToastGravity.BOTTOM,
+              toastDuration: Duration(seconds: 2),
+              positionedToastBuilder: (context, child) {
+                return Positioned(
+                  top: 760.0,
+                  left: 100.0,
+                  child: child,
+                );
+              });
+          return;
+        }
+        if (_placeController.text.isEmpty) {
+          fToast.showToast(
+              child: _showToast("장소를 입력하세요."),
+              gravity: ToastGravity.BOTTOM,
+              toastDuration: Duration(seconds: 2),
+              positionedToastBuilder: (context, child) {
+                return Positioned(
+                  top: 760.0,
+                  left: 100.0,
+                  child: child,
+                );
+              });
           return;
         }
         final schedule = Schedule(
