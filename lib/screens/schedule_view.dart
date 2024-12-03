@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
 import '../widgets/day_selector.dart';
@@ -19,6 +20,23 @@ class ScheduleView extends StatefulWidget {
 class _ScheduleViewState extends State<ScheduleView> {
   int _selectedDay = 1;
   DateTime? _selectedDate;
+  String selectedFilter = 'Date';
+  late ScheduleModel filteredScheduleModel = ScheduleModel();
+  late ScheduleModel originScheduleModel;
+
+  void _sortItems(String filter) {
+    setState(() {
+      selectedFilter = filter;
+      if (filter == 'Date') {
+        filteredScheduleModel.schedules.sort((a, b) =>
+            (DateFormat('yyyy-MM-dd HH:mm').parse(a.time)).compareTo(
+                (DateFormat('yyyy-MM-dd HH:mm').parse(b.time)))); // 최신순
+      } else if (filter == 'Name') {
+        filteredScheduleModel.schedules
+            .sort((a, b) => b.title.compareTo(a.title)); // 최신순
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,18 +61,40 @@ class _ScheduleViewState extends State<ScheduleView> {
                   widget.startDate.month,
                   widget.startDate.day + _selectedDay - 1,
                 );
+                _selectedDate ??=
+                    widget.startDate.add(Duration(days: _selectedDay - 1));
+                final filteredSchedules =
+                    originScheduleModel.schedulesForDate(_selectedDate!);
+                filteredScheduleModel.addScheduleList(filteredSchedules);
               });
             },
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  _sortItems(value); // 정렬 함수 호출
+                },
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem(
+                    value: 'Date',
+                    child: Text('시간 순'),
+                  ),
+                  PopupMenuItem(
+                    value: 'Name',
+                    child: Text('이름 순'),
+                  ),
+                ],
+                icon: Icon(Icons.filter_alt_sharp),
+              ),
+              SizedBox(width: 20),
+            ],
           ),
           Expanded(
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
-                _selectedDate ??=
-                    widget.startDate.add(Duration(days: _selectedDay - 1));
-                final filteredSchedules =
-                    scheduleModel.schedulesForDate(_selectedDate!);
-                final filteredScheduleModel = ScheduleModel();
-                filteredScheduleModel.addScheduleList(filteredSchedules);
+                originScheduleModel = scheduleModel;
                 return filteredScheduleModel.schedules.isEmpty
                     ? const Column(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -28,6 +28,7 @@ class ScheduleModel extends ChangeNotifier {
   }
 
   void addScheduleList(List<Schedule> scheduleList) {
+    _schedules = [];
     for (Schedule schedule in scheduleList) {
       _schedules.add(schedule);
     }
