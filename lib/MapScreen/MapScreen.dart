@@ -102,9 +102,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    final position = await Geolocator.getCurrentPosition();
     final cameraPosition = CameraPosition(
-      target: LatLng(position.latitude, position.longitude),
+      target: myPos,
       zoom: 18,
     );
     _controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
