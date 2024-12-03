@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
+import '../SearchScreen/PlaceDetailsModal.dart';
+import '../SearchScreen/SearchScreen.dart';
 import 'TopWidget.dart';
 import 'BottomWidget.dart';
 import 'entity/entity.dart';
@@ -28,6 +34,9 @@ class _MapScreenState extends State<MapScreen> {
   late GoogleMapController _controller;
   bool _myLocationEnabled = false;
   Place? _place;
+  final String _apiKey = dotenv.get("GOOGLE_PLACES_API_KEY");
+  final String _openAiKey = dotenv.get("OPENAI_API_KEY");
+  Map<String, dynamic> _placeDetails = {};
   DateTime? selectedDate; // 선택된 날짜
   final Set<Marker> _markers = {}; // 마커 리스트 추가
   final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
@@ -154,6 +163,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
       ),
     );
+    _fetchReviewsAndDetails(_place!.placeId);
   }
 
   @override
@@ -161,11 +171,9 @@ class _MapScreenState extends State<MapScreen> {
     return Column(
       children: [
         TopSheet(onSearchMarker: (place) {
-          if (place != null) {
-            _place = place;
-            _updatePlaceMarker(place); // 새 마커 추가
-          }
-        }),
+          _place = place;
+          _updatePlaceMarker(place); // 새 마커 추가
+                }),
         Expanded(
           child: Stack(
             children: [
@@ -207,5 +215,58 @@ class _MapScreenState extends State<MapScreen> {
         ),
       ],
     );
+  }
+
+  // 상준's 작품
+  void _fetchReviewsAndDetails(String placeId) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final reviews = data['result']['reviews'] ?? [];
+
+        // 타입을 한국어로 변환하여 설명 설정
+        final types = data['result']['types'] as List<dynamic>?;
+
+        final description = (types != null && types.isNotEmpty)
+            ? types.map((type) => translateType(type as String)).join(', ')
+            : '정보 없음';
+
+        final details = {
+          'name': data['result']['name'] ?? '정보 없음', // 장소 이름 추가
+          'description': description,
+          'phone': data['result']['formatted_phone_number'] ?? '정보 없음',
+          'opening_hours':
+          data['result']['opening_hours']?['weekday_text'] ?? [],
+          'wheelchair_accessible':
+          data['result']['wheelchair_accessible_entrance'] ?? false,
+        };
+        setState(() {
+          _placeDetails = details;
+        });
+
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) => PlaceDetailsModal(
+            placeDetails: _placeDetails,
+            reviews: reviews,
+            openAiKey: _openAiKey, // API 키 전달
+          ),
+        );
+      } else {
+        print('API 오류: ${response.statusCode}');
+        throw Exception('Failed to load details and reviews');
+      }
+    } catch (e) {
+      print('Error fetching details: $e');
+    }
   }
 }
