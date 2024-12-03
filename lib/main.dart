@@ -66,12 +66,19 @@ class _MyApp extends State<MyApp> {
         myPos = LatLng(position.latitude, position.longitude); // 위치 업데이트
         print("현재 위치: $myPos");
 
+        var today = DateTime.now();
+
         schedules.forEach((schedule) {
-          if(schedule.time.isAfter(DateTime.now())) return;
-          else if(schedule.time.compareTo(DateTime.now()) == 0) {
-            if(calculateDistance(schedule.latLng, myPos) <= 50) {
+          // 스케줄 날짜만 추출
+          final scheduleDate = DateTime(schedule.time.year, schedule.time.month, schedule.time.day);
+
+          // 날짜 비교
+          if (scheduleDate.year == today.year
+              && scheduleDate.month == today.month
+              && scheduleDate.day == today.day
+              && calculateDistance(schedule.latLng, myPos) <= 50000
+          ) {
               innerPlace.value = schedule.place;
-            }
           }
         });
       });

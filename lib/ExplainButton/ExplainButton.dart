@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../GlobalState/global.dart';
-import '../MapScreen/entity/entity.dart';
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+
+
 
 class ExplainButton extends StatelessWidget {
   final FlutterTts tts; // FlutterTts 필드 추가
@@ -24,11 +28,9 @@ class ExplainButton extends StatelessWidget {
             ),
             onPressed: () {
               // 상태를 변경하여 UI 업데이트 테스트
-              if (value != null) {
-                tts.speak("${value}에 진입하였습니다."); // TTS 실행
-              } else {
-                tts.speak("현재 장소 정보가 없습니다."); // 값이 null일 때 처리
-              }
+              var response = _summarizeReviews();
+              print(response);
+              tts.speak("${response}에 진입하였습니다."); // TTS 실행
             },
             child: const Text(
               "설명 듣기", // 현재 상태 값을 표시
@@ -40,5 +42,50 @@ class ExplainButton extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<String> _summarizeReviews() async {
+    print(innerPlace.value);
+    final String _openAiKey = dotenv.get("OPENAI_API_KEY");
+
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+    final body = {
+      'model': 'gpt-4o-mini',
+      'messages': [
+        {
+          'role': 'system',
+          'content': 'You are a helpful assistant.'
+        },
+        {
+          'role': 'user',
+          'content': '다음 장소를 설명해줘 :${innerPlace.value}'
+        }
+      ],
+      'temperature': 0.7
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {
+          'Authorization': 'Bearer ${_openAiKey}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      final responseString = utf8.decode(response.bodyBytes);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(responseString);
+        return data['choices']?[0]?['message']?['content']?.trim() ??
+            data['choices']?[0]?['text']?.trim();
+      } else {
+        return '요약을 가져오는 데 실패했습니다.';
+      }
+    } catch (e) {
+      return '요약을 가져오는 도중 오류가 발생했습니다.';
+    }
   }
 }
