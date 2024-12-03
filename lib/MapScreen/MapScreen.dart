@@ -1,31 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'TopSheet.dart';
+import 'TopWidget.dart';
 import 'BottomWidget.dart';
-
-class Schedule {
-  final int scheduleId;
-  final int userId;
-  final String title;
-  final DateTime time;
-  final LatLng latLng;
-  BitmapDescriptor? icon; // 아이콘 추가
-
-  Schedule({
-    required this.scheduleId,
-    required this.userId,
-    required this.title,
-    required this.time,
-    required this.latLng,
-    this.icon,
-  });
-
-  @override
-  String toString() {
-    return 'Schedule(scheduleId: $scheduleId, userId: $userId, title: "$title", time: $time, latLng: $latLng)';
-  }
-}
+import 'entity/entity.dart';
 
 List<Schedule> schedules = [
   Schedule(scheduleId: 1, userId: 1, title: "출국", time: DateTime(2024, 12, 1, 1, 0, 0), latLng: LatLng(37.63695556, 127.0277194)),
@@ -39,8 +17,6 @@ List<Schedule> schedules = [
   Schedule(scheduleId: 9, userId: 1, title: "귀국", time: DateTime(2024, 12, 3, 6, 0, 0), latLng: LatLng(38.03695556, 127.1277194)),
 ];
 
-// TODO: schedules로 API 주입 받을 것
-
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -51,10 +27,10 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController _controller;
   bool _myLocationEnabled = false;
-
+  Place? _place;
   DateTime? selectedDate; // 선택된 날짜
+  final Set<Marker> _markers = {}; // 마커 리스트 추가
   final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
-
   final LatLng _center = const LatLng(37.63695556, 127.0277194);
 
   @override
@@ -64,7 +40,7 @@ class _MapScreenState extends State<MapScreen> {
     _loadCustomIcons();
   }
 
-// 위치 권한 확인 및 요청 메서드
+  // 위치 권한 확인 및 요청 메서드
   Future<void> _initializeLocationPermissions() async {
     LocationPermission status = await Geolocator.checkPermission();
     if (status == LocationPermission.denied) {
@@ -78,9 +54,12 @@ class _MapScreenState extends State<MapScreen> {
     print("위치 권한이 허용되었습니다.");
   }
 
-  static const List<String> colors = ["asset/img/marker/red/", "asset/img/marker/green/", "asset/img/marker/purple/",];
+  static const List<String> colors = [
+    "asset/img/marker/red/",
+    "asset/img/marker/green/",
+    "asset/img/marker/purple/",
+  ];
 
-  // TODO: 로직 내부에서 정렬을 계속 진행하는데, 수정 필요 있음
   // BitmapDescriptor 아이콘을 로드하여 customIcons 리스트에 추가
   Future<void> _loadCustomIcons() async {
     // 리스트를 날짜 순으로 정렬
@@ -111,7 +90,6 @@ class _MapScreenState extends State<MapScreen> {
 
     setState(() {}); // UI 업데이트
   }
-
 
   void _onMapCreated(GoogleMapController controller) {
     _controller = controller;
@@ -152,14 +130,44 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  // _place 값 변경 시 마커 추가 및 위치 이동
+  void _updatePlaceMarker(Place place) {
+    final marker = Marker(
+      markerId: MarkerId(place.placeId),
+      position: LatLng(37.5665, 126.9780), // 예제: 장소의 LatLng 설정 필요
+      infoWindow: InfoWindow(
+        title: place.name,
+        snippet: place.address,
+      ),
+    );
+
+    setState(() {
+      _markers.add(marker); // 마커 추가
+    });
+
+    // 지도 카메라 이동
+    _controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(37.5665, 126.9780), // 예제: 장소의 LatLng 설정 필요
+          zoom: 15,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const TopSheet(),
+        TopSheet(onSearchMarker: (place) {
+          if (place != null) {
+            _place = place;
+            _updatePlaceMarker(place); // 새 마커 추가
+          }
+        }),
         Expanded(
-          child:
-          Stack(
+          child: Stack(
             children: [
               GoogleMap(
                 mapType: MapType.normal,
@@ -170,7 +178,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
                 myLocationEnabled: _myLocationEnabled,
                 myLocationButtonEnabled: false,
-                markers: getMarkers(),
+                markers: _markers.union(getMarkers()), // 기존 마커와 새 마커 결합
               ),
               Positioned(
                 bottom: 16,
@@ -186,7 +194,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
               ),
-            ]
+            ],
           ),
         ),
         BottomWidget(
