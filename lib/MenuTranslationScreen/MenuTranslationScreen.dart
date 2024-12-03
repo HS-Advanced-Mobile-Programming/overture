@@ -4,6 +4,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:overture/MenuTranslationScreen/DeepLTranslate.dart';
 
 class ImagePickerScreen extends StatefulWidget {
   @override
@@ -16,7 +17,8 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
 
   // 카운터 값을 각 메뉴 항목별로 저장하는 Map
   Map<String, int> menuItemCounters = {};
-
+  Map<String, String> translatedMenuItems = {};
+  final DeepLService  deepLService = DeepLService();
   // 갤러리에서 이미지를 선택하는 함수
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -51,6 +53,24 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
     return regExp.allMatches(input).map((match) => match.group(0)).join(' ').trim();
   }
 
+  Future<void> _translateMenuItems(List<String> menuItems) async {
+    for (var menuItem in menuItems) {
+      if (!translatedMenuItems.containsKey(menuItem)) {
+        try {
+          final translatedText = await deepLService.translateText(menuItem, "KO");
+          setState(() {
+            translatedMenuItems[menuItem] = translatedText;
+          });
+        } catch (e) {
+          print("번역 실패: $e");
+          setState(() {
+            translatedMenuItems[menuItem] = "번역 오류";
+          });
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +91,7 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (extractedText == "") {
                       Fluttertoast.showToast(
                           msg: "추출된 문자가 없습니다.",
@@ -83,22 +103,25 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                           fontSize: 16.0
                       );
                     } else {
+                        List<String> menuItems = extractedText
+                            .split("\n")
+                            .map((item) => item.trim())
+                            .toList();
+
                       //TODO AI 요청
                       showModalBottomSheet(
                         context: context,
                         builder: (context) {
                           return StatefulBuilder(
                             builder: (BuildContext context, StateSetter setState) {
-                              List<String> menuItems = extractedText
-                                  .split("\n")
-                                  .map((item) => item.trim())
-                                  .toList();
 
                               return ListView.builder(
                                 padding: EdgeInsets.all(8),
                                 itemCount: menuItems.length,
                                 itemBuilder: (context, index) {
                                   String menuItem = menuItems[index];
+                                  String translatedText =
+                                      translatedMenuItems[menuItem] ?? "번역 중...";
 
                                   // 각 메뉴 항목에 대해 숫자 값을 매핑
                                   if (!menuItemCounters.containsKey(menuItem)) {
@@ -112,9 +135,25 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                                       title: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            menuItem, // 메뉴 이름
-                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                          Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                menuItem,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              Text(
+                                                translatedText,
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           Row(
                                             children: [
@@ -145,6 +184,8 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                           );
                         },
                       );
+
+                        await _translateMenuItems(menuItems);
                     }
                   },
                   child: Text("메뉴 추출하기"),
