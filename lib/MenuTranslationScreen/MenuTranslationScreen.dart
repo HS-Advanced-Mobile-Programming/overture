@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:overture/MenuTranslationScreen/DeepLTranslate.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class ImagePickerScreen extends StatefulWidget {
   @override
@@ -14,6 +15,15 @@ class ImagePickerScreen extends StatefulWidget {
 class _ImagePickerScreenState extends State<ImagePickerScreen> {
   File? _selectedImage;
   String extractedText = "";
+  final FlutterTts tts = FlutterTts();
+
+  @override
+  void initState(){
+    super.initState();
+
+    tts.setLanguage("en-US");
+    tts.setSpeechRate(0.5);
+  }
 
   // 카운터 값을 각 메뉴 항목별로 저장하는 Map
   Map<String, int> menuItemCounters = {};
@@ -46,7 +56,7 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
     extractedText = _extractAlphabeticCharacters(extractedText);
   }
 
-  // 문자만 추출하는 함수
+  // 문자만 추출하는 함수 - [참고] https://www.youtube.com/watch?v=GmhkXH8fO-A
   String _extractAlphabeticCharacters(String input) {
     // 알파벳 문자만 남기고 나머지 문자들은 제거 (공백 포함)
     RegExp regExp = RegExp(r'[a-zA-Zㄱ-ㅎ가-힣\s]+');
@@ -92,9 +102,19 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (extractedText == "") {
+                    if (_selectedImage == null) {
                       Fluttertoast.showToast(
-                          msg: "추출된 문자가 없습니다.",
+                          msg:"이미지를 선택하세요.",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0
+                      );
+                    } else if(extractedText == "") {
+                      Fluttertoast.showToast(
+                          msg:"추출된 문자가 없습니다.",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.BOTTOM,
                           timeInSecForIosWeb: 1,
@@ -108,9 +128,8 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                             .map((item) => item.trim())
                             .toList();
 
-                      //TODO AI 요청
-                      showModalBottomSheet(
-                        context: context,
+                      //TODO Papago 번역 요청
+                      showModalBottomSheet( context: context,
                         builder: (context) {
                           return StatefulBuilder(
                             builder: (BuildContext context, StateSetter setState) {
@@ -157,6 +176,12 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                                           ),
                                           Row(
                                             children: [
+                                              IconButton(
+                                                onPressed: (){
+                                                  tts.speak(menuItem);
+                                                },
+                                                icon: Icon(Icons.volume_down_rounded,color: Colors.amber,)
+                                              ),
                                               CounterButton(
                                                 loading: false,
                                                 onChange: (int val) {
