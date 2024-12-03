@@ -1,12 +1,12 @@
 import 'package:counter_button/counter_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'ClothingChecklistWidget.dart';
+import 'ClothingChecklistItemWidget.dart';
 
 class ClothingExpansionTile extends StatefulWidget {
   final List<Widget> clothingList;
-  final Function(Widget newItem) onItemAdded;
-  final Function(Widget target) onItemDelete; //TODO 삭제 안됨
+  final Function(ClothesCheckListItem newItem) onItemAdded;
+  final Function(String targetid) onItemDelete; //TODO 삭제 안됨
 
   ClothingExpansionTile({required this.clothingList, required this.onItemAdded, required this.onItemDelete});
 
@@ -121,11 +121,13 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
                                           color: Colors.blue,
                                           child: TextButton(
                                             onPressed: () {
-                                              Widget newItem = ClothesCheckListItem(
+                                              int size = widget.clothingList.length;
+                                              ClothesCheckListItem newItem = ClothesCheckListItem(
+                                                  id: "${++size}",
                                                   itemName: _newClothesItemName.text,
                                                   description: _newCLothesItemdescription.text,
                                                   quantity: _newCounterValue,
-                                                  // onItemDelete: widget.onItemDelete,
+                                                  onItemDelete: widget.onItemDelete,
                                                 );
 
                                               widget.onItemAdded(newItem);

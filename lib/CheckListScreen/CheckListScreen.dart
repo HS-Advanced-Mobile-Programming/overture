@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:overture/CheckListScreen/ClothExpansionTileWidget.dart';
 
-import 'ClothingChecklistWidget.dart';
+import 'ClothingChecklistItemWidget.dart';
 import 'EssentialCheckListWidget.dart';
 
 
@@ -45,9 +45,10 @@ class _CheckListScreenState extends State<CheckListScreen> {
     EssentialCheckListItem(itemName: "비자발급",description:  "프랑스 여행 시 단기체류(90일 이하)의 경우 무비자 입국 가능 장기체류의 경우 별도의 비자신청이 필요합니다.")
   ];
 
-  List<Widget> ClothingList = [
+  List<ClothesCheckListItem> clothingList = [
 
   ];
+
 
   @override
   void initState() {
@@ -62,7 +63,13 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableEndDate = _endDate;
     this.editableBoardingTime = _boardingTime;
 
-    this.ClothingList.add(ClothesCheckListItem(itemName: "상의",description: "회의용", quantity: 3, ),);
+    this.clothingList.add(ClothesCheckListItem(id: "0",itemName: "상의",description: "회의용", quantity: 3, onItemDelete: deleteClothesById, ),);
+  }
+
+  void deleteClothesById(String id){
+    setState(() {
+      this.clothingList.removeWhere((item)=>item.id == id);
+    });
   }
 
 
@@ -137,16 +144,15 @@ class _CheckListScreenState extends State<CheckListScreen> {
             )
           ),
           TravelEssentialsCheckList(),
-          ClothingExpansionTile(clothingList: this.ClothingList,
-            onItemAdded: (newItem) {
+          ClothingExpansionTile(
+            clothingList: this.clothingList,
+            onItemAdded: (ClothesCheckListItem newItem) {
               setState(() {
-                ClothingList.add(newItem);
+                clothingList.add(newItem);
               });
             },
-            onItemDelete: (target){
-              setState(() {
-                ClothingList.remove(target);
-              });
+            onItemDelete: (String target){
+              deleteClothesById(target);
             },
           )
         ]

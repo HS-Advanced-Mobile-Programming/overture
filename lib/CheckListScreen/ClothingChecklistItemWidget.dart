@@ -2,16 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ClothesCheckListItem extends StatefulWidget{
+  final String id;
   final String itemName;
   final String description;
   final int quantity;
-  // final Function(Widget newItem) onItemDelete; //TODO 삭제 안됨
+  final Function(String newItem) onItemDelete; //TODO 삭제 안됨
 
   ClothesCheckListItem({
+    required this.id,
     required this.itemName,
     required this.description,
     required this.quantity,
-    // required this.onItemDelete,
+    required this.onItemDelete,
     Key? key
   }) : super(key: key);
 
@@ -25,7 +27,7 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
   @override
   Widget build(BuildContext context) {
 
-    Widget target =  ExpansionTile(
+    Widget target = ExpansionTile(
       title: Row(
         children: [
           Checkbox(value: this.checked, onChanged: (value){
@@ -48,6 +50,9 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
       ],
     );
 
-    return target;
+    return GestureDetector(
+      onLongPress: () => widget.onItemDelete(widget.id), // 수정된 부분
+      child: target,
+    );
   }
 }
