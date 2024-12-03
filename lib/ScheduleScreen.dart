@@ -1,14 +1,15 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:overture/screens/schedule_view.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '내 일정 화면',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return Scaffold(
+      body: ScheduleView(
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(days: 7)),
       ),
     );
   }
