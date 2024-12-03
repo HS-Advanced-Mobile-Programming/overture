@@ -19,3 +19,5 @@ List<Schedule> schedules = [
 
 // 전역 상태 관리 변수
 ValueNotifier<Place?> innerPlace = ValueNotifier<Place?>(null);
+
+LatLng myPos = LatLng(0,0);

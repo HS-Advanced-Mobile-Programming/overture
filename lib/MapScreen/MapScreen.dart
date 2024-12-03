@@ -34,22 +34,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeLocationPermissions(); // 위치 권한 초기화
     _loadCustomIcons();
-  }
-
-  // 위치 권한 확인 및 요청 메서드
-  Future<void> _initializeLocationPermissions() async {
-    LocationPermission status = await Geolocator.checkPermission();
-    if (status == LocationPermission.denied) {
-      status = await Geolocator.requestPermission();
-      if (status == LocationPermission.denied || status == LocationPermission.deniedForever) {
-        // 사용자가 위치 권한을 거부했을 때 처리
-        print("위치 권한이 거부되었습니다.");
-        return;
-      }
-    }
-    print("위치 권한이 허용되었습니다.");
   }
 
   static const List<String> colors = [
