@@ -57,7 +57,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
           Expanded(
             child: ListView.separated(
               separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(),
+                  const Divider(color: Color(0xffD2D2D2),),
               itemCount: _searchResults.length,
               itemBuilder: (context, index) {
                 final place = _searchResults[index];
