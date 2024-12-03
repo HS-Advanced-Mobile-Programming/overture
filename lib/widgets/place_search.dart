@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:overture/widgets/schedule_bottom_sheet.dart';
 
 class PlaceSearch extends StatefulWidget {
   final Function(Map<String, String>) onPlaceSelected;
@@ -11,6 +12,8 @@ class PlaceSearch extends StatefulWidget {
 
 class _PlaceSearchState extends State<PlaceSearch> {
   List<Map<String, String>> _searchResults = [];
+  final text =
+      "한성대학교는 서울 성북구와 종로구에 위치한 사립 대학교로, 1972년에 설립되었습니다. 주요 학부로는 인문대학, 사회과학대학, 예술대학, 공과대학 등이 있으며 다양한 학부와 전공을 제공합니다. 학부와 석사, 박사 과정에서 공학, 경영학, 컴퓨터 과학, 미술, 패션 디자인 등 다양한 학문을 다룹니다";
 
   void _performSearch(String value) {
     // 실제 구현에서는 API 호출을 통해 장소를 검색해야 합니다.
@@ -39,25 +42,33 @@ class _PlaceSearchState extends State<PlaceSearch> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(8.0)+const EdgeInsets.symmetric(vertical: 10.0),
+            padding: const EdgeInsets.all(8.0) +
+                const EdgeInsets.symmetric(vertical: 10.0),
             child: TextField(
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
               onChanged: _performSearch,
               decoration: InputDecoration(
-                prefixIcon: IconButton(onPressed: () {
-                  Navigator.of(context).pop();
-                }, icon: const Icon(Icons.arrow_back)),
+                prefixIcon: IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(Icons.arrow_back)),
                 hintText: "장소 검색",
                 border: const OutlineInputBorder(borderSide: BorderSide.none),
                 suffixIcon: const Icon(Icons.search),
               ),
             ),
           ),
-          const Divider(thickness: 10.0, color: Color(0xffF2F2F2),),
+          const Divider(
+            thickness: 10.0,
+            color: Color(0xffF2F2F2),
+          ),
           Expanded(
             child: ListView.separated(
               separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(color: Color(0xffD2D2D2),),
+                  const Divider(
+                color: Color(0xffD2D2D2),
+              ),
               itemCount: _searchResults.length,
               itemBuilder: (context, index) {
                 final place = _searchResults[index];
@@ -84,22 +95,26 @@ class _PlaceSearchState extends State<PlaceSearch> {
                       showModalBottomSheet(
                         context: context,
                         builder: (BuildContext context) {
-                          return Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Text(place['name']!,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 15)),
-                                Text(place['address']!),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  child: const Text('닫기'),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
+                          return ScheduleBottomSheet(
+                            title: place['name']!,
+                            button: const Text(
+                              '닫기',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            buttonOnPressed: () => Navigator.of(context).pop(),
+                            child: TextField(
+                              readOnly: true,
+                              controller: TextEditingController(text: text),
+                              minLines: 5,
+                              maxLines: null,
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderSide: BorderSide.none),
+                                  fillColor: Colors.transparent,
+                                  filled: true),
                             ),
                           );
                         },
