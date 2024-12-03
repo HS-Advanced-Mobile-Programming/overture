@@ -20,6 +20,15 @@ class DaySelector extends StatefulWidget {
 }
 
 class _DaySelectorState extends State<DaySelector> {
+  static const selectedDayTextStyle = TextStyle(
+      fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xffFFFFFF));
+  static const selectedDateTextStyle = TextStyle(
+      fontSize: 12, fontWeight: FontWeight.normal, color: Color(0xffC8C8C8));
+  static const normalDayTextStyle = TextStyle(
+      fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xff1C0F13));
+  static const normalDateTextStyle = TextStyle(
+      fontSize: 12, fontWeight: FontWeight.normal, color: Color(0xff5F5F5F));
+
   late ScrollController _scrollController;
 
   @override
@@ -76,18 +85,34 @@ class _DaySelectorState extends State<DaySelector> {
                 final day = index + 1;
                 DateTime n = widget.startDate.add(Duration(days: index));
                 return Padding(
-                  padding: const EdgeInsets.all(1.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: ChoiceChip(
+                    backgroundColor: Colors.white,
+                    selectedColor: Color(0xff1C0F13),
                     showCheckmark: false,
-                    label: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Day $day',
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(DateFormat('MM.dd(E)', 'ko_KR').format(n))
-                      ],
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22.0),
+                        side: BorderSide(color: Color(0xffC7C7C7))),
+                    label: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 7.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Day $day',
+                            textAlign: TextAlign.center,
+                            style: widget.selectedDay == day
+                                ? selectedDayTextStyle
+                                : normalDayTextStyle,
+                          ),
+                          Text(
+                            DateFormat('MM.dd(E)', 'ko_KR').format(n),
+                            style: widget.selectedDay == day
+                                ? selectedDateTextStyle
+                                : normalDateTextStyle,
+                          )
+                        ],
+                      ),
                     ),
                     selected: widget.selectedDay == day,
                     onSelected: (selected) {
