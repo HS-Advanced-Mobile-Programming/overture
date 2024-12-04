@@ -45,7 +45,7 @@ class _ScheduleViewState extends State<ScheduleView> {
   @override
   Widget build(BuildContext context) {
     final scheduleModel = Provider.of<ScheduleModel>(context);
-
+    print("build scheduleModel : ${scheduleModel.schedules.length}");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -67,7 +67,9 @@ class _ScheduleViewState extends State<ScheduleView> {
                   widget.startDate.month,
                   widget.startDate.day + _selectedDay - 1,
                 );
-                filteredScheduleModel.addScheduleList(ScheduleModel.schedulesForDate(_selectedDate!, originScheduleList));
+                filteredScheduleModel.addScheduleList(
+                    ScheduleModel.schedulesForDate(
+                        _selectedDate!, originScheduleList));
                 print("Day Selected");
               });
             },
@@ -78,6 +80,7 @@ class _ScheduleViewState extends State<ScheduleView> {
               PopupMenuButton<String>(
                 onSelected: (value) {
                   _sortItems(value); // 정렬 함수 호출
+                  print("call _sortItems");
                 },
                 itemBuilder: (BuildContext context) => [
                   PopupMenuItem(
@@ -98,50 +101,56 @@ class _ScheduleViewState extends State<ScheduleView> {
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
                 originScheduleList = scheduleModel.schedules;
-                print("originScheduleModel length: ${originScheduleList.length}");
-                print("scheduleModel length: ${scheduleModel.schedules.length}");
-                    if (originScheduleList.length == 159) {
-                      print("First 159");
-                    }
+                print(
+                    "originScheduleModel length: ${originScheduleList.length}");
+                print(
+                    "scheduleModel length: ${scheduleModel.schedules.length}");
+                if (originScheduleList.length == 159) {
+                  print("First 159");
+                }
                 return filteredScheduleModel.schedules.isEmpty
                     ? const Center(
-                  child: Text(
-                    "이 날짜에 예정된 일정이 없습니다.",
-                    style: TextStyle(color: Color(0xff5F5F5F)),
-                  ),
-                )
+                        child: Text(
+                          "이 날짜에 예정된 일정이 없습니다.",
+                          style: TextStyle(color: Color(0xff5F5F5F)),
+                        ),
+                      )
                     : ListView.builder(
-                  itemCount: filteredScheduleModel.schedules.length,
-                  itemBuilder: (context, index) {
-                    print(filteredScheduleModel.schedules.length);
-                    final schedule = filteredScheduleModel.schedules[index];
-                    return Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: ScheduleItem(
-                        schedule: schedule,
-                        onEdit: () {
-                          _showScheduleForm(context, schedule: schedule);
-                        },
-                        onDelete: () {
-                          filteredScheduleModel.deleteSchedule(schedule.id);
-                          scheduleModel.deleteSchedule(schedule.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('일정이 삭제되었습니다.'),
-                              action: SnackBarAction(
-                                label: '되돌리기',
-                                onPressed: () {
-                                  filteredScheduleModel.addSchedule(schedule);
-                                  scheduleModel.addSchedule(schedule);
-                                },
-                              ),
+                        itemCount: filteredScheduleModel.schedules.length,
+                        itemBuilder: (context, index) {
+                          print(filteredScheduleModel.schedules.length);
+                          final schedule =
+                              filteredScheduleModel.schedules[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: ScheduleItem(
+                              schedule: schedule,
+                              onEdit: () {
+                                _showScheduleForm(context, schedule: schedule);
+                              },
+                              onDelete: () {
+                                filteredScheduleModel
+                                    .deleteSchedule(schedule.id);
+                                scheduleModel.deleteSchedule(schedule.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('일정이 삭제되었습니다.'),
+                                    action: SnackBarAction(
+                                      label: '되돌리기',
+                                      onPressed: () {
+                                        filteredScheduleModel
+                                            .addSchedule(schedule);
+                                        scheduleModel.addSchedule(schedule);
+                                        print("call 되돌리기");
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
-                      ),
-                    );
-                  },
-                );
+                      );
               },
             ),
           ),
@@ -181,20 +190,24 @@ class _ScheduleViewState extends State<ScheduleView> {
               Container(height: 50, color: Colors.transparent),
               Padding(
                 padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom, // 키보드 높이만큼 패딩 추가
+                  bottom: MediaQuery.of(context)
+                      .viewInsets
+                      .bottom, // 키보드 높이만큼 패딩 추가
                 ),
                 child: ScheduleForm(
                   selectedDate: _selectedDate!,
                   schedule: schedule,
                   onSubmit: (newSchedule) {
                     final scheduleModel =
-                    Provider.of<ScheduleModel>(context, listen: false);
+                        Provider.of<ScheduleModel>(context, listen: false);
                     if (schedule == null) {
                       // 중복된 일정을 추가하지 않도록 확인
                       if (!scheduleModel.schedules.contains(newSchedule)) {
                         scheduleModel.addSchedule(newSchedule);
-                        print("scheduleModel length: ${scheduleModel.schedules.length}");
-                        service.addMultipleSchedules([ScheduleDto.toScheduleDto(newSchedule, '1')]);
+                        print(
+                            "scheduleModel length: ${scheduleModel.schedules.length}");
+                        service.addMultipleSchedules(
+                            [ScheduleDto.toScheduleDto(newSchedule, '1')]);
                       }
                     } else {
                       scheduleModel.editSchedule(newSchedule);

@@ -5,32 +5,52 @@ import 'package:overture/service/FirestoreScheduleService.dart';
 import 'package:overture/service/ScheduleDto.dart';
 import 'package:provider/provider.dart';
 
-class ScheduleScreen extends StatelessWidget {
+class ScheduleScreen extends StatefulWidget {
+  const ScheduleScreen({Key? key}) : super(key: key);
+
+  @override
+  _ScheduleScreenState createState() => _ScheduleScreenState();
+}
+
+class _ScheduleScreenState extends State<ScheduleScreen> {
   final FirestoreScheduleService service = FirestoreScheduleService();
   List<Schedule> scheduleList = [];
   List<ScheduleDto> fetchSchedule = [];
-  ScheduleScreen({super.key});
+  bool isLoading = true;
 
-  Future<void> fetchSchedules(BuildContext context) async {
-    final scheduleModel = Provider.of<ScheduleModel>(context);
-    fetchSchedule = await service.getAllSchedules(); // 비동기 작업 결과 가져오기
+  Future<void> fetchSchedules() async {
+    final scheduleModel = Provider.of<ScheduleModel>(context, listen: false);
+    fetchSchedule = await service.getAllSchedules();
+    scheduleList = [];
     for (ScheduleDto schedule in fetchSchedule) {
       scheduleList.add(Schedule(
         id: schedule.scheduleId,
         title: schedule.title,
         content: schedule.content,
         time: schedule.time,
-        place: schedule.place, // 'location'으로 수정 (place와 혼동 방지)
+        place: schedule.place,
       ));
     }
-    if(scheduleList.isNotEmpty) scheduleModel.addScheduleList(scheduleList);
+    if (scheduleList.isNotEmpty) {
+      scheduleModel.addScheduleList(scheduleList);
+    }
+    setState(() {
+      isLoading = false; // 로딩 상태 업데이트
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSchedules(); // 데이터를 초기화할 때 한 번만 호출
   }
 
   @override
   Widget build(BuildContext context) {
-    fetchSchedules(context);
     return Scaffold(
-      body: ScheduleView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // 로딩 중 표시
+          : ScheduleView(
         startDate: DateTime.now(),
         endDate: DateTime.now().add(const Duration(days: 7)),
       ),
