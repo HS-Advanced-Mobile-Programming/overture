@@ -29,17 +29,8 @@ class _ExplainButtonState extends State<ExplainButton> {
     innerPlace.addListener(() {
       if (innerPlace.value != null) {
         _fetchSummary(); // 설명 데이터를 가져옴
-
         setState(() {
           _isVisible = true;
-        });
-
-        // 5초 후 버튼을 숨김
-        _timer?.cancel(); // 기존 타이머가 있다면 취소
-        _timer = Timer(const Duration(seconds: 5), () {
-          setState(() {
-            _isVisible = false;
-          });
         });
       }
     });
@@ -54,6 +45,20 @@ class _ExplainButtonState extends State<ExplainButton> {
 
     setState(() {
       _isLoading = false;
+    });
+
+    // 로딩이 끝난 후 타이머 시작
+    if (_summary != null) {
+      _startTimer();
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel(); // 기존 타이머가 있다면 취소
+    _timer = Timer(const Duration(seconds: 5), () {
+      setState(() {
+        _isVisible = false;
+      });
     });
   }
 
@@ -74,10 +79,10 @@ class _ExplainButtonState extends State<ExplainButton> {
             bottom: 70, // 아래로부터 70 위치
             left: MediaQuery.of(context).size.width / 2 - 50, // 화면 중심 계산
             child: _isLoading
-                ? const CircularProgressIndicator() // 로딩 중 표시
+                ? Center()
                 : FilledButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStatePropertyAll(
+                backgroundColor: WidgetStatePropertyAll(
                   Colors.blue.shade400,
                 ),
               ),
@@ -115,7 +120,7 @@ class _ExplainButtonState extends State<ExplainButton> {
         },
         {
           'role': 'user',
-          'content': '다음 장소를 설명해줘 :${innerPlace.value}'
+          'content': '다음 장소를 짧게 설명해줘 :${innerPlace.value}'
         }
       ],
       'temperature': 0.7
