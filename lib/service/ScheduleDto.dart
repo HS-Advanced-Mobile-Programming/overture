@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 
 class ScheduleDto {
-  final String scheduleId;
+  String scheduleId;
   final String userId;
   final String title;
   final String place;
@@ -17,9 +17,9 @@ class ScheduleDto {
       required this.time,
       required this.content});
 
-  factory ScheduleDto.fromJson(Map<String, dynamic> json) {
+  factory ScheduleDto.fromJson(Map<String, dynamic> json, String id) {
     return ScheduleDto(
-        scheduleId: json['scheduleId'],
+        scheduleId: id,
         userId: json['userId'],
         title: json['title'],
         place: json['place'],
@@ -59,5 +59,9 @@ class ScheduleDto {
         content: scheduleDto.content,
         time: scheduleDto.time,
         place: scheduleDto.place);
+  }
+
+  void updateScheduleId(String id) {
+    scheduleId = id;
   }
 }

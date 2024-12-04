@@ -135,6 +135,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                                 filteredScheduleModel
                                     .deleteSchedule(schedule.id);
                                 scheduleModel.deleteSchedule(schedule.id);
+                                service.deleteSchedule(schedule.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: const Text('일정이 삭제되었습니다.'),
@@ -143,7 +144,8 @@ class _ScheduleViewState extends State<ScheduleView> {
                                       onPressed: () {
                                         filteredScheduleModel
                                             .addSchedule(schedule);
-                                        scheduleModel.addSchedule(schedule);
+                                        service.addSchedule(
+                                            ScheduleDto.toScheduleDto(schedule, '1'), scheduleModel);
                                         print("call 되돌리기");
                                       },
                                     ),
@@ -205,14 +207,14 @@ class _ScheduleViewState extends State<ScheduleView> {
                         Provider.of<ScheduleModel>(context, listen: false);
                     if (schedule == null) {
                       // 중복된 일정을 추가하지 않도록 확인
-                      if (!scheduleModel.schedules.contains(newSchedule)) {
-                        scheduleModel.addSchedule(newSchedule);
+                      if (!scheduleModel.schedules.any((schedule) => schedule.id == newSchedule.id)) {
                         print(
                             "scheduleModel length: ${scheduleModel.schedules.length}");
-                        service.addMultipleSchedules(
-                            [ScheduleDto.toScheduleDto(newSchedule, '1')]);
+                        service.addSchedule(
+                            ScheduleDto.toScheduleDto(newSchedule, '1'), scheduleModel);
                       }
                     } else {
+                     service.updateSchedule(newSchedule.id, ScheduleDto.toScheduleDto(newSchedule, '1'));
                       scheduleModel.editSchedule(newSchedule);
                     }
                     Navigator.pop(context);

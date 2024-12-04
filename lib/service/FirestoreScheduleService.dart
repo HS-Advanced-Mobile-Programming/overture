@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:overture/service/ScheduleDto.dart';
 
 class FirestoreScheduleService {
@@ -21,7 +22,7 @@ class FirestoreScheduleService {
     try {
       DocumentSnapshot doc = await _collectionRef.doc(id).get();
       if (doc.exists) {
-        return ScheduleDto.fromJson(doc.data() as Map<String, dynamic>);
+        return ScheduleDto.fromJson(doc.data() as Map<String, dynamic>, id);
       } else {
         print('No schedule found with ID: $id');
         return null;
@@ -59,8 +60,8 @@ class FirestoreScheduleService {
     try {
       QuerySnapshot querySnapshot = await _collectionRef.get();
       return querySnapshot.docs
-          .map(
-              (doc) => ScheduleDto.fromJson(doc.data() as Map<String, dynamic>))
+          .map((doc) =>
+              ScheduleDto.fromJson(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       print('Error retrieving all schedules: $e');
@@ -68,11 +69,15 @@ class FirestoreScheduleService {
     }
   }
 
-  // 병렬 처리 예시: 여러 Schedule 추가
-  Future<void> addMultipleSchedules(List<ScheduleDto> schedules) async {
+  Future<void> addSchedule(ScheduleDto schedule, ScheduleModel scheduleModel) async {
     try {
-      await Future.wait(schedules.map((schedule) =>
-          _collectionRef.add(schedule.toJson()))); // 병렬로 모든 스케줄 추가
+        DocumentReference docRef = await _collectionRef.add(schedule.toJson());
+
+        // 문서 ID를 scheduleId로 업데이트
+        await docRef.update({"scheduleId": docRef.id});
+        schedule.scheduleId = docRef.id;
+        scheduleModel.addSchedule(ScheduleDto.toSchedule(schedule));
+
       print('All schedules added successfully');
     } catch (e) {
       print('Error adding multiple schedules: $e');
