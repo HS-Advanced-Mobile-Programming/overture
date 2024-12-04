@@ -1,6 +1,5 @@
 import 'dart:ffi';
 
-import 'package:counter_button/counter_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
