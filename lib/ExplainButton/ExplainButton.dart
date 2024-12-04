@@ -34,7 +34,7 @@ class ExplainButton extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    tts.speak("$summary에 진입하였습니다."); // TTS 실행
+                    tts.speak(summary); // TTS 실행
                   },
                   child: const Text(
                     "설명 듣기", // 현재 상태 값을 표시
