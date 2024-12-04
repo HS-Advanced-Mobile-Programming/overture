@@ -77,7 +77,6 @@ class _ScheduleViewState extends State<ScheduleView> {
               PopupMenuButton<String>(
                 onSelected: (value) {
                   _sortItems(value); // 정렬 함수 호출
-                  print("call _sortItems");
                 },
                 itemBuilder: (BuildContext context) => [
                   PopupMenuItem(
@@ -111,7 +110,6 @@ class _ScheduleViewState extends State<ScheduleView> {
                     : ListView.builder(
                         itemCount: filteredScheduleModel.schedules.length,
                         itemBuilder: (context, index) {
-                          print(filteredScheduleModel.schedules.length);
                           final schedule =
                               filteredScheduleModel.schedules[index];
                           return Padding(
