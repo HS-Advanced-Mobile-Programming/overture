@@ -28,7 +28,6 @@ class _ScheduleViewState extends State<ScheduleView> {
   late List<Schedule> originScheduleList;
 
   void _sortItems(String filter) {
-    setState(() {
       selectedFilter = filter;
       if (filter == 'Date') {
         filteredScheduleModel.schedules.sort((a, b) =>
@@ -38,7 +37,6 @@ class _ScheduleViewState extends State<ScheduleView> {
         filteredScheduleModel.schedules
             .sort((a, b) => a.title.compareTo(b.title)); // 최신순
       }
-    });
   }
 
   @override
@@ -77,6 +75,9 @@ class _ScheduleViewState extends State<ScheduleView> {
               PopupMenuButton<String>(
                 onSelected: (value) {
                   _sortItems(value); // 정렬 함수 호출
+                  setState(() {
+                    selectedFilter = value;
+                  });
                 },
                 color: Colors.white,
                 offset: const Offset(-25, 40),
@@ -102,6 +103,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                 filteredScheduleModel.addScheduleList(
                     ScheduleModel.schedulesForDate(
                         _selectedDate!, originScheduleList));
+                _sortItems(selectedFilter);
                 return filteredScheduleModel.schedules.isEmpty
                     ? const Center(
                         child: Text(
