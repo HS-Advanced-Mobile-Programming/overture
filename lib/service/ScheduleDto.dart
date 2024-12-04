@@ -51,4 +51,13 @@ class ScheduleDto {
         time: schedule.time,
         content: schedule.content);
   }
+
+  static Schedule toSchedule(ScheduleDto scheduleDto) {
+    return Schedule(
+        id: scheduleDto.scheduleId,
+        title: scheduleDto.title,
+        content: scheduleDto.content,
+        time: scheduleDto.time,
+        place: scheduleDto.place);
+  }
 }
