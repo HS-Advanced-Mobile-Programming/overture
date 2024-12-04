@@ -105,6 +105,9 @@ class _ScheduleViewState extends State<ScheduleView> {
                     "originScheduleModel length: ${originScheduleList.length}");
                 print(
                     "scheduleModel length: ${scheduleModel.schedules.length}");
+                filteredScheduleModel.addScheduleList(
+                    ScheduleModel.schedulesForDate(
+                        _selectedDate!, originScheduleList));
                 if (originScheduleList.length == 159) {
                   print("First 159");
                 }
