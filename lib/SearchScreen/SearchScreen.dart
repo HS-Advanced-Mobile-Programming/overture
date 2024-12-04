@@ -167,6 +167,12 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     return typeMap[type] ?? type;
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _searchPlaces(String query) async {
     if (query.isEmpty) return;
 
@@ -178,14 +184,94 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        final results = data['results'];
+
         setState(() {
-          _searchResults = data['results']; // 검색 결과를 리스트에 저장
+          _searchResults = results;
         });
+
+        // 상위 1개 결과의 추천 메뉴 즉시 요청
+        if (results.isNotEmpty) {
+          final topResult = results[0];
+          final types = topResult['types'] as List<dynamic>?;
+          if (types != null && types.contains('restaurant')) {
+            fetchTopResultImmediately(topResult['place_id']);
+          }
+        }
       } else {
         throw Exception('Failed to load places');
       }
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+  void fetchTopResultImmediately(String placeId) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final restaurantName = data['result']['name'] ?? '음식점';
+
+        // GPT로 추천 메뉴 가져오기
+        final recommendedMenu = await fetchRecommendedMenu(restaurantName);
+
+        setState(() {
+          _placeDetails['recommendedMenu'] = recommendedMenu;
+        });
+      } else {
+        throw Exception('Failed to fetch place details');
+      }
+    } catch (e) {
+      print('Error fetching details: $e');
+    }
+  }
+
+  Future<List<String>> fetchRecommendedMenu(String restaurantName) async {
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+    final body = {
+      'model': 'gpt-4o-mini',
+      'messages': [
+        {
+          'role': 'system',
+          'content': 'You are a helpful assistant who provides menu recommendations.'
+        },
+        {
+          'role': 'user',
+          'content': '다음 음식점의 추천 메뉴를 알려줘: $restaurantName.'
+        }
+      ],
+      'temperature': 0.7
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {
+          'Authorization': 'Bearer $_openAiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final content = data['choices'][0]['message']['content'] as String;
+        return content
+            .split('\n')
+            .where((line) => line.trim().isNotEmpty)
+            .toList();
+      } else {
+        throw Exception('Failed to fetch recommended menu');
+      }
+    } catch (e) {
+      print('Error fetching menu: $e');
+      return [];
     }
   }
 
@@ -216,6 +302,14 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           'wheelchair_accessible':
           data['result']['wheelchair_accessible_entrance'] ?? false,
         };
+
+        // 만약 음식점이라면, 추천 메뉴 가져오기
+        if (types != null && types.contains('restaurant')) {
+          final restaurantName = data['result']['name'] ?? '음식점';
+          final recommendedMenu = await fetchRecommendedMenu(restaurantName);
+          details['recommendedMenu'] = recommendedMenu;
+        }
+
         setState(() {
           _placeDetails = details;
         });
@@ -239,6 +333,19 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     } catch (e) {
       print('Error fetching details: $e');
     }
+  }
+
+  // 영어 타입을 한국어로 변환하는 메서드
+  String translateType(String type) {
+    const typeMap = {
+      // 필요한 타입 매핑을 여기에 추가하세요
+      'university': '대학',
+      'point_of_interest': '관광지',
+      'restaurant': '음식점',
+      'cafe': '카페',
+      // ... 추가 타입 매핑
+    };
+    return typeMap[type] ?? type;
   }
 
   @override
@@ -281,7 +388,8 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                 final place = _searchResults[index];
                 final String name = place['name'] ?? '이름 없음';
                 final double rating = place['rating']?.toDouble() ?? 0.0;
-                final String address = place['formatted_address'] ?? '주소 없음';
+                final String address =
+                    place['formatted_address'] ?? '주소 없음';
                 return GestureDetector(
                   onTap: () {
                     Navigator.pop(context, {
@@ -291,9 +399,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                       'place_id': place['place_id'],
                     });
                   },
-                  onLongPress: () => _fetchReviewsAndDetails(place['place_id']),
+                  onLongPress: () =>
+                      _fetchReviewsAndDetails(place['place_id']),
                   child: ListTile(
-                    title: Text(place['name']),
+                    title: Text(name),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
