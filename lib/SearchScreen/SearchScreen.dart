@@ -43,12 +43,12 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           _searchResults = results;
         });
 
-        // Fetch recommended menu for the top result if it's a restaurant
+        // 첫 번째 결과가 음식점인 경우 즉시 추천 메뉴 요청
         if (results.isNotEmpty) {
           final topResult = results[0];
           final types = topResult['types'] as List<dynamic>?;
           if (types != null && types.contains('restaurant')) {
-            fetchTopResultImmediately(topResult['place_id']);
+            fetchRecommendedMenuForPlace(topResult['place_id']);
           }
         }
       } else {
@@ -59,22 +59,23 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     }
   }
 
-  void fetchTopResultImmediately(String placeId) async {
+  void fetchRecommendedMenuForPlace(String placeId) async {
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
 
     try {
       final response = await http.get(url);
 
+      final responseString = utf8.decode(response.bodyBytes);
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(responseString);
         final restaurantName = data['result']['name'] ?? '음식점';
 
-        // Fetch recommended menu using GPT-4o
+        // GPT-4o로 추천 메뉴 가져오기
         final recommendedMenu = await fetchRecommendedMenu(restaurantName);
 
         setState(() {
-          _placeDetails['recommendedMenu'] = recommendedMenu;
+          _placeDetails['recommendedMenu_$placeId'] = recommendedMenu;
         });
       } else {
         throw Exception('Failed to fetch place details');
@@ -113,8 +114,9 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
         body: jsonEncode(body),
       );
 
+      final responseString = utf8.decode(response.bodyBytes);
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(responseString);
         final content = data['choices'][0]['message']['content'] as String;
         return content
             .split('\n')
@@ -137,18 +139,22 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     try {
       final response = await http.get(url);
 
+      final responseString = utf8.decode(response.bodyBytes);
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(responseString);
         final reviews = data['result']['reviews'] ?? [];
 
-        // Translate types to Korean for description
+        // 타입을 한국어로 변환하여 설명 설정
         final types = data['result']['types'] as List<dynamic>?;
 
         final description = (types != null && types.isNotEmpty)
             ? types.map((type) => translateType(type as String)).join(', ')
             : '정보 없음';
 
+        final isRestaurant = types != null && types.contains('restaurant');
+
         final details = {
+          'placeId': placeId,
           'name': data['result']['name'] ?? '정보 없음',
           'description': description,
           'phone': data['result']['formatted_phone_number'] ?? '정보 없음',
@@ -156,12 +162,21 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           data['result']['opening_hours']?['weekday_text'] ?? [],
           'wheelchair_accessible':
           data['result']['wheelchair_accessible_entrance'] ?? false,
+          'isRestaurant': isRestaurant,
         };
 
-        // Fetch recommended menu if it's a restaurant
-        if (types != null && types.contains('restaurant')) {
-          final restaurantName = data['result']['name'] ?? '음식점';
-          final recommendedMenu = await fetchRecommendedMenu(restaurantName);
+        if (isRestaurant) {
+          // 이미 추천 메뉴를 가져왔는지 확인
+          List<String>? recommendedMenu =
+          _placeDetails['recommendedMenu_$placeId'];
+
+          if (recommendedMenu == null) {
+            // 추천 메뉴를 가져오지 않은 경우, 가져오기
+            recommendedMenu =
+            await fetchRecommendedMenu(details['name'] ?? '음식점');
+            _placeDetails['recommendedMenu_$placeId'] = recommendedMenu;
+          }
+
           details['recommendedMenu'] = recommendedMenu;
         }
 
@@ -188,23 +203,6 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     } catch (e) {
       print('Error fetching details: $e');
     }
-  }
-
-  // Method to translate English types to Korean
-  String translateType(String type) {
-    const typeMap = {
-      'university': '대학',
-      'point_of_interest': '관광지',
-      'restaurant': '음식점',
-      'cafe': '카페',
-      'hotel': '호텔',
-      'park': '공원',
-      'museum': '박물관',
-      'library': '도서관',
-      'shopping_mall': '쇼핑몰',
-      // Add more mappings as needed
-    };
-    return typeMap[type] ?? type;
   }
 
   @override
@@ -295,6 +293,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     );
   }
 }
+
 
 
 // 영어 타입을 한국어로 변환하는 메서드

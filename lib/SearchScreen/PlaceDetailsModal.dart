@@ -26,14 +26,23 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
 
   @override
   Widget build(BuildContext context) {
-    final recommendedMenu =
-    List<String>.from(widget.placeDetails['recommendedMenu'] ?? []);
+    // 장소가 음식점이고 추천 메뉴가 있는지 확인
+    final bool isRestaurant = widget.placeDetails['isRestaurant'] ?? false;
+    final recommendedMenu = isRestaurant
+        ? List<String>.from(widget.placeDetails['recommendedMenu'] ?? [])
+        : null;
+
+    // 페이지 수 계산
+    int pageCount = widget.reviews.length + 1; // 첫 페이지 + 리뷰들
+    if (isRestaurant) {
+      pageCount += 1; // 음식점인 경우 추천 메뉴 페이지 추가
+    }
 
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.7,
       child: Column(
         children: [
-          // Top indicator
+          // 상단 표시
           Container(
             width: 50,
             height: 5,
@@ -45,18 +54,23 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
           ),
           Expanded(
             child: PageView.builder(
-              itemCount: widget.reviews.length + 2, // First page + recommended menu + reviews
+              itemCount: pageCount,
               itemBuilder: (context, index) {
                 if (index == 0) {
-                  // First page
+                  // 첫 번째 페이지
                   return _buildFirstPage();
-                } else if (index == 1) {
-                  // Recommended menu page
+                } else if (isRestaurant && index == 1) {
+                  // 추천 메뉴 페이지
                   return _buildRecommendedMenuPage(recommendedMenu);
                 } else {
-                  // Review pages
-                  final review = widget.reviews[index - 2];
-                  return _buildReviewPage(review);
+                  // 리뷰 페이지
+                  final reviewIndex = isRestaurant ? index - 2 : index - 1;
+                  if (reviewIndex >= 0 && reviewIndex < widget.reviews.length) {
+                    final review = widget.reviews[reviewIndex];
+                    return _buildReviewPage(review);
+                  } else {
+                    return Center(child: Text('리뷰가 없습니다.'));
+                  }
                 }
               },
             ),
@@ -198,13 +212,22 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
     );
   }
 
-  Widget _buildRecommendedMenuPage(List<String> recommendedMenu) {
+  Widget _buildRecommendedMenuPage(List<String>? recommendedMenu) {
+    if (recommendedMenu == null) {
+      return const Center(
+        child: Text(
+          '추천 메뉴를 가져오는 중입니다...',
+          style: TextStyle(fontSize: 16),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: recommendedMenu.isEmpty
           ? const Center(
         child: Text(
-          '추천 메뉴를 가져오는 중입니다...',
+          '추천 메뉴가 없습니다.',
           style: TextStyle(fontSize: 16),
         ),
       )
@@ -229,7 +252,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Reviewer profile photo
+          // 리뷰 작성자 프로필 사진
           CircleAvatar(
             radius: 40,
             backgroundImage: NetworkImage(
@@ -237,7 +260,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             ),
           ),
           const SizedBox(height: 10),
-          // Reviewer name
+          // 작성자 이름
           Text(
             review['author_name'] ?? '익명',
             style: const TextStyle(
@@ -246,7 +269,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             ),
           ),
           const SizedBox(height: 5),
-          // Review time
+          // 작성일
           Text(
             review['relative_time_description'] ?? '',
             style: const TextStyle(
@@ -255,7 +278,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             ),
           ),
           const SizedBox(height: 10),
-          // Rating
+          // 별점
           RatingBarIndicator(
             rating: review['rating']?.toDouble() ?? 0.0,
             itemBuilder: (context, index) => const Icon(
@@ -266,7 +289,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             itemSize: 24.0,
           ),
           const SizedBox(height: 20),
-          // Review content
+          // 리뷰 내용
           Expanded(
             child: SingleChildScrollView(
               child: Text(
