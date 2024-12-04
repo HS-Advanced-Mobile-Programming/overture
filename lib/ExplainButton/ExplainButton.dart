@@ -5,8 +5,6 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-
-
 class ExplainButton extends StatelessWidget {
   final FlutterTts tts; // FlutterTts 필드 추가
 
@@ -20,24 +18,35 @@ class ExplainButton extends StatelessWidget {
         return Positioned(
           bottom: 70, // 아래로부터 70 위치
           left: MediaQuery.of(context).size.width / 2 - 50, // 화면 중심 계산
-          child: FilledButton(
-            style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(
-                Colors.blue.shade400,
-              ),
-            ),
-            onPressed: () {
-              // 상태를 변경하여 UI 업데이트 테스트
-              var response = _summarizeReviews();
-              print(response);
-              tts.speak("${response}에 진입하였습니다."); // TTS 실행
+          child: FutureBuilder<String>(
+            future: _summarizeReviews(), // Future 작업
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator(); // 로딩 중 표시
+              } else if (snapshot.hasError) {
+                return Text('오류: ${snapshot.error}'); // 오류 발생 시 메시지 표시
+              } else if (snapshot.hasData) {
+                final summary = snapshot.data ?? '결과 없음';
+                return FilledButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(
+                      Colors.blue.shade400,
+                    ),
+                  ),
+                  onPressed: () {
+                    tts.speak("$summary에 진입하였습니다."); // TTS 실행
+                  },
+                  child: const Text(
+                    "설명 듣기", // 현재 상태 값을 표시
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              } else {
+                return const Text('결과가 없습니다.'); // 데이터가 없을 때 표시
+              }
             },
-            child: const Text(
-              "설명 듣기", // 현재 상태 값을 표시
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         );
       },
@@ -69,7 +78,7 @@ class ExplainButton extends StatelessWidget {
       final response = await http.post(
         Uri.parse(endpoint),
         headers: {
-          'Authorization': 'Bearer ${_openAiKey}',
+          'Authorization': 'Bearer $_openAiKey',
           'Content-Type': 'application/json',
         },
         body: jsonEncode(body),
