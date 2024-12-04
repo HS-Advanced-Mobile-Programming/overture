@@ -78,6 +78,8 @@ class _ScheduleViewState extends State<ScheduleView> {
                 onSelected: (value) {
                   _sortItems(value); // 정렬 함수 호출
                 },
+                color: Colors.white,
+                offset: const Offset(-25, 40),
                 itemBuilder: (BuildContext context) => [
                   PopupMenuItem(
                     value: 'Date',
