@@ -1,14 +1,13 @@
 import 'dart:ffi';
 
-import 'package:counter_button/counter_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:overture/CheckListScreen/ClothExpansionTileWidget.dart';
-
-import 'ClothingChecklistItemWidget.dart';
+import 'package:overture/models/check_model_files/clothes_model.dart';
+import 'package:overture/models/check_model_files/essential_model.dart';
 import 'EssentialCheckListWidget.dart';
 
 
@@ -41,13 +40,10 @@ class _CheckListScreenState extends State<CheckListScreen> {
   String _boardingTime = DateFormat('HH:mm').format(DateTime.now());
 
   late String editableBoardingTime;
-  List<Widget> TravelEssentialsList = [
-    EssentialCheckListItem(itemName: "비자발급",description:  "프랑스 여행 시 단기체류(90일 이하)의 경우 무비자 입국 가능 장기체류의 경우 별도의 비자신청이 필요합니다.")
-  ];
 
-  List<ClothesCheckListItem> clothingList = [
+  EssentialCheckListModel essentialCheckListModel = EssentialCheckListModel();
 
-  ];
+  ClothesCheckListModel clothesCheckListModel = ClothesCheckListModel();
 
 
   @override
@@ -64,12 +60,6 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableBoardingTime = _boardingTime;
 
     // this.clothingList.add(ClothesCheckListItem(id: "0",itemName: "상의",description: "회의용", quantity: 3, onItemDelete: deleteClothesById, ),);
-  }
-
-  void deleteClothesById(String id){
-    setState(() {
-      this.clothingList.removeWhere((item)=>item.id == id);
-    });
   }
 
 
@@ -145,14 +135,17 @@ class _CheckListScreenState extends State<CheckListScreen> {
           ),
           TravelEssentialsCheckList(),
           ClothingExpansionTile(
-            clothingList: this.clothingList,
-            onItemAdded: (ClothesCheckListItem newItem) {
+            clothingList: this.clothesCheckListModel.clothesCheckList,
+            onItemAdded: (ClothesContent newClothe){
               setState(() {
-                clothingList.add(newItem);
+                this.clothesCheckListModel.addClothe(newClothe);
               });
+
             },
             onItemDelete: (String target){
-              deleteClothesById(target);
+              setState(() {
+                this.clothesCheckListModel.deleteClothes(target);
+              });
             },
           )
         ]
@@ -361,9 +354,13 @@ class _CheckListScreenState extends State<CheckListScreen> {
         collapsedBackgroundColor: Colors.white,
         backgroundColor: Colors.white,
         title: Text("🎒 여행 필수 품목"),
-        children: [
-          Column(children: this.TravelEssentialsList),
-        ]
+        children: essentialCheckListModel.essentialCheckList
+            .map((item) => EssentialCheckListItem(
+              itemName: item.itemName,
+              description: item.description,
+              checked: item.isChecked,
+          )
+        ).toList(),
       ),
     );
   }

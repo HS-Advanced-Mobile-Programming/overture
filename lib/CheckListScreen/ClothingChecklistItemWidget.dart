@@ -6,6 +6,7 @@ class ClothesCheckListItem extends StatefulWidget{
   final String itemName;
   final String description;
   final int quantity;
+  bool checked;
   final Function(String newItem) onItemDelete; //TODO 삭제 안됨
 
   ClothesCheckListItem({
@@ -14,6 +15,7 @@ class ClothesCheckListItem extends StatefulWidget{
     required this.description,
     required this.quantity,
     required this.onItemDelete,
+    required this.checked,
     Key? key
   }) : super(key: key);
 
@@ -22,7 +24,6 @@ class ClothesCheckListItem extends StatefulWidget{
 }
 
 class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
-  bool checked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +31,10 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
     Widget target = ExpansionTile(
       title: Row(
         children: [
-          Checkbox(value: this.checked, onChanged: (value){
+          Checkbox(value: widget.checked, onChanged: (value){
             setState(() {
               // TODO 여기서 파베로 요청
-              this.checked = value ?? false;
+              widget.checked = value ?? false;
             });
           }),
           Text("${widget.itemName}", style: TextStyle(fontWeight: FontWeight.w800)),

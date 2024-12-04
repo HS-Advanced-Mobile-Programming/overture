@@ -10,10 +10,12 @@ import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
+import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
+import 'models/check_model_files/essential_model.dart';
 
 //TODO main icon 움직이게
 
@@ -31,6 +33,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ScheduleModel()),
+        ChangeNotifierProvider(create: (_) => EssentialCheckListModel()),
+        ChangeNotifierProvider(create: (_) => ClothesCheckListModel())
       ],
       child: const MyApp(),
     ),

@@ -1,14 +1,19 @@
 import 'package:counter_button/counter_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../models/check_model_files/clothes_model.dart';
 import 'ClothingChecklistItemWidget.dart';
 
 class ClothingExpansionTile extends StatefulWidget {
-  final List<Widget> clothingList;
-  final Function(ClothesCheckListItem newItem) onItemAdded;
+  final List<ClothesContent> clothingList;
+  final Function(ClothesContent newItem) onItemAdded;
   final Function(String targetid) onItemDelete; //TODO 삭제 안됨
 
-  ClothingExpansionTile({required this.clothingList, required this.onItemAdded, required this.onItemDelete});
+  ClothingExpansionTile({
+    required this.clothingList,
+    required this.onItemAdded,
+    required this.onItemDelete
+  });
 
   @override
   _ClothingExpansionTileState createState() => _ClothingExpansionTileState();
@@ -22,7 +27,15 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
       backgroundColor: Colors.white,
       title: Text("👕 의류"),
       children: [
-        Column(children: widget.clothingList),
+        Column( children: widget.clothingList.map((item) =>
+            ClothesCheckListItem(
+            id: item.id,
+            itemName: item.itemName,
+            description: item.description,
+            quantity: item.quantity,
+            checked : item.isChecked,
+            onItemDelete: widget.onItemDelete,
+          )).toList()),
         Padding(
           padding: EdgeInsets.only(right: 16, left: 16, bottom: 16),
           child: Row(
@@ -122,14 +135,13 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
                                           child: TextButton(
                                             onPressed: () {
                                               int size = widget.clothingList.length;
-                                              ClothesCheckListItem newItem = ClothesCheckListItem(
+                                              ClothesContent newItem = ClothesContent(
                                                   id: "${++size}",
                                                   itemName: _newClothesItemName.text,
                                                   description: _newCLothesItemdescription.text,
                                                   quantity: _newCounterValue,
-                                                  onItemDelete: widget.onItemDelete,
+                                                  isChecked: false
                                                 );
-
                                               widget.onItemAdded(newItem);
                                               Navigator.pop(context);
                                             },
