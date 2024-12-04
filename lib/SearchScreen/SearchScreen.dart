@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../MapScreen/entity/entity.dart';
 import 'PlaceDetailsModal.dart';
 
+
 class PlaceSearchScreen extends StatefulWidget {
   const PlaceSearchScreen({super.key});
 
@@ -18,7 +19,12 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   List<dynamic> _searchResults = [];
   final String _apiKey = dotenv.get("GOOGLE_PLACES_API_KEY");
   final String _openAiKey = dotenv.get("OPENAI_API_KEY");
-  Map<String, dynamic> _placeDetails = {};
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _searchPlaces(String query) async {
     if (query.isEmpty) return;
@@ -29,10 +35,15 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     try {
       final response = await http.get(url);
 
+      // UTF-8로 디코딩
+      final responseString = utf8.decode(response.bodyBytes);
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(responseString);
+        final results = data['results'];
+
         setState(() {
-          _searchResults = data['results']; // 검색 결과를 리스트에 저장
+          _searchResults = results;
         });
       } else {
         throw Exception('Failed to load places');
@@ -43,14 +54,18 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   }
 
   void _fetchReviewsAndDetails(String placeId) async {
+    // 장소 상세 정보와 리뷰를 가져옵니다.
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
 
     try {
       final response = await http.get(url);
 
+      // UTF-8로 디코딩
+      final responseString = utf8.decode(response.bodyBytes);
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(responseString);
         final reviews = data['result']['reviews'] ?? [];
 
         // 타입을 한국어로 변환하여 설명 설정
@@ -60,19 +75,20 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
             ? types.map((type) => translateType(type as String)).join(', ')
             : '정보 없음';
 
-        final details = {
-          'name': data['result']['name'] ?? '정보 없음', // 장소 이름 추가
+        final isRestaurant = types != null && types.contains('restaurant');
+
+        final placeDetails = {
+          'placeId': placeId,
+          'name': data['result']['name'] ?? '정보 없음',
           'description': description,
           'phone': data['result']['formatted_phone_number'] ?? '정보 없음',
-          'opening_hours':
-          data['result']['opening_hours']?['weekday_text'] ?? [],
+          'opening_hours': data['result']['opening_hours']?['weekday_text'] ?? [],
           'wheelchair_accessible':
           data['result']['wheelchair_accessible_entrance'] ?? false,
+          'isRestaurant': isRestaurant,
         };
-        setState(() {
-          _placeDetails = details;
-        });
 
+        // 모달을 표시합니다.
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -80,14 +96,13 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           builder: (context) => PlaceDetailsModal(
-            placeDetails: _placeDetails,
+            placeDetails: placeDetails,
             reviews: reviews,
             openAiKey: _openAiKey, // API 키 전달
           ),
         );
       } else {
         print('API 오류: ${response.statusCode}');
-        throw Exception('Failed to load details and reviews');
       }
     } catch (e) {
       print('Error fetching details: $e');
@@ -104,6 +119,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
+          // 검색 바
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -127,6 +143,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
               ],
             ),
           ),
+          // 검색 결과 리스트
           Expanded(
             child: ListView.builder(
               itemCount: _searchResults.length,
@@ -149,7 +166,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                   },
                   onLongPress: () => _fetchReviewsAndDetails(place['place_id']),
                   child: ListTile(
-                    title: Text(place['name']),
+                    title: Text(name),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -181,6 +198,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     );
   }
 }
+
 
 // 영어 타입을 한국어로 변환하는 메서드
 String translateType(String type) {
