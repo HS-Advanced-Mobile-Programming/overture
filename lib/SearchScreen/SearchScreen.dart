@@ -77,6 +77,11 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
         setState(() {
           _placeDetails['recommendedMenu_$placeId'] = recommendedMenu;
         });
+
+        // 모달 업데이트를 위해 상태를 변경
+        if (mounted) {
+          setState(() {});
+        }
       } else {
         throw Exception('Failed to fetch place details');
       }
@@ -133,6 +138,20 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   }
 
   void _fetchReviewsAndDetails(String placeId) async {
+    // 모달을 즉시 표시
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => PlaceDetailsModal(
+        placeDetails: {'placeId': placeId},
+        reviews: [],
+        openAiKey: _openAiKey,
+      ),
+    );
+
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
 
@@ -184,18 +203,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           _placeDetails = details;
         });
 
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) => PlaceDetailsModal(
-            placeDetails: _placeDetails,
-            reviews: reviews,
-            openAiKey: _openAiKey,
-          ),
-        );
+        // 모달 업데이트를 위해 상태를 변경
+        if (mounted) {
+          setState(() {});
+        }
       } else {
         print('API 오류: ${response.statusCode}');
         throw Exception('Failed to load details and reviews');

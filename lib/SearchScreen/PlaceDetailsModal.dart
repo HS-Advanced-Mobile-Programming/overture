@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
@@ -23,17 +24,160 @@ class PlaceDetailsModal extends StatefulWidget {
 class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
   bool _isLoading = false;
   String _summary = '';
+  Map<String, dynamic> _details = {};
+  List<dynamic> _reviews = [];
+  bool _dataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _details = widget.placeDetails;
+    _reviews = widget.reviews;
+    if (!_dataLoaded) {
+      _fetchDetailsAndReviews();
+    }
+  }
+
+  void _fetchDetailsAndReviews() async {
+    final placeId = _details['placeId'];
+    if (placeId == null) return;
+
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=${dotenv.get("GOOGLE_PLACES_API_KEY")}');
+
+    try {
+      final response = await http.get(url);
+      final responseString = utf8.decode(response.bodyBytes);
+      if (response.statusCode == 200) {
+        final data = json.decode(responseString);
+        final reviews = data['result']['reviews'] ?? [];
+
+        // 타입을 한국어로 변환하여 설명 설정
+        final types = data['result']['types'] as List<dynamic>?;
+
+        final description = (types != null && types.isNotEmpty)
+            ? types.map((type) => translateType(type as String)).join(', ')
+            : '정보 없음';
+
+        final isRestaurant = types != null && types.contains('restaurant');
+
+        final details = {
+          'placeId': placeId,
+          'name': data['result']['name'] ?? '정보 없음',
+          'description': description,
+          'phone': data['result']['formatted_phone_number'] ?? '정보 없음',
+          'opening_hours':
+          data['result']['opening_hours']?['weekday_text'] ?? [],
+          'wheelchair_accessible':
+          data['result']['wheelchair_accessible_entrance'] ?? false,
+          'isRestaurant': isRestaurant,
+        };
+
+        if (isRestaurant) {
+          // 이미 추천 메뉴를 가져왔는지 확인
+          List<String>? recommendedMenu =
+              _details['recommendedMenu'] ??
+                  widget.placeDetails['recommendedMenu'];
+
+          if (recommendedMenu == null) {
+            // 추천 메뉴를 가져오지 않은 경우, 가져오기
+            recommendedMenu =
+            await fetchRecommendedMenu(details['name'] ?? '음식점');
+          }
+
+          details['recommendedMenu'] = recommendedMenu;
+        }
+
+        setState(() {
+          _details = details;
+          _reviews = reviews;
+          _dataLoaded = true;
+        });
+      } else {
+        print('API 오류: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching details: $e');
+    }
+  }
+
+  Future<List<String>> fetchRecommendedMenu(String restaurantName) async {
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+    final body = {
+      'model': 'gpt-4o-mini',
+      'messages': [
+        {
+          'role': 'system',
+          'content':
+          'You are a helpful assistant who provides menu recommendations.'
+        },
+        {
+          'role': 'user',
+          'content': '다음 음식점의 추천 메뉴를 알려줘: $restaurantName.'
+        }
+      ],
+      'temperature': 0.7
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {
+          'Authorization': 'Bearer ${widget.openAiKey}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      final responseString = utf8.decode(response.bodyBytes);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(responseString);
+        final content = data['choices'][0]['message']['content'] as String;
+
+        // 이모지 및 텍스트 스타일링 적용
+        return content
+            .split('\n')
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty)
+            .toList();
+      } else {
+        throw Exception('Failed to fetch recommended menu');
+      }
+    } catch (e) {
+      print('Error fetching menu: $e');
+      return [];
+    }
+  }
+
+  String translateType(String type) {
+    const typeMap = {
+      // 필요한 매핑 추가
+      'university': '대학',
+      'point_of_interest': '관광지',
+      'restaurant': '음식점',
+      'cafe': '카페',
+      'hotel': '호텔',
+      'park': '공원',
+      'museum': '박물관',
+      'library': '도서관',
+      'shopping_mall': '쇼핑몰',
+      // ... 생략 ...
+    };
+    return typeMap[type] ?? type;
+  }
 
   @override
   Widget build(BuildContext context) {
     // 장소가 음식점이고 추천 메뉴가 있는지 확인
-    final bool isRestaurant = widget.placeDetails['isRestaurant'] ?? false;
+    final bool isRestaurant = _details['isRestaurant'] ?? false;
     final recommendedMenu = isRestaurant
-        ? List<String>.from(widget.placeDetails['recommendedMenu'] ?? [])
+        ? _details['recommendedMenu'] as List<String>?
         : null;
 
     // 페이지 수 계산
-    int pageCount = widget.reviews.length + 1; // 첫 페이지 + 리뷰들
+    int pageCount = _reviews.length + 1; // 첫 페이지 + 리뷰들
     if (isRestaurant) {
       pageCount += 1; // 음식점인 경우 추천 메뉴 페이지 추가
     }
@@ -65,11 +209,11 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
                 } else {
                   // 리뷰 페이지
                   final reviewIndex = isRestaurant ? index - 2 : index - 1;
-                  if (reviewIndex >= 0 && reviewIndex < widget.reviews.length) {
-                    final review = widget.reviews[reviewIndex];
+                  if (reviewIndex >= 0 && reviewIndex < _reviews.length) {
+                    final review = _reviews[reviewIndex];
                     return _buildReviewPage(review);
                   } else {
-                    return Center(child: Text('리뷰가 없습니다.'));
+                    return const Center(child: Text('리뷰가 없습니다.'));
                   }
                 }
               },
@@ -81,6 +225,10 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
   }
 
   Widget _buildFirstPage() {
+    if (!_dataLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: SingleChildScrollView(
@@ -140,15 +288,15 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
                   children: [
                     _buildInfoRow(
                       title: '장소 이름',
-                      content: widget.placeDetails['name'] ?? '정보 없음',
+                      content: _details['name'] ?? '정보 없음',
                     ),
                     _buildInfoRow(
                       title: '설명',
-                      content: widget.placeDetails['description'] ?? '정보 없음',
+                      content: _details['description'] ?? '정보 없음',
                     ),
                     _buildInfoRow(
                       title: '전화번호',
-                      content: widget.placeDetails['phone'] ?? '정보 없음',
+                      content: _details['phone'] ?? '정보 없음',
                     ),
                     _buildInfoRow(
                       title: '영업시간',
@@ -156,7 +304,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
                     ),
                     _buildInfoRow(
                       title: '장애인 편의시설',
-                      content: widget.placeDetails['wheelchair_accessible']
+                      content: _details['wheelchair_accessible'] == true
                           ? '있음'
                           : '없음',
                     ),
@@ -170,7 +318,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
   }
 
   String _getOpeningHours() {
-    final openingHours = widget.placeDetails['opening_hours'];
+    final openingHours = _details['opening_hours'];
     if (openingHours is List && openingHours.isNotEmpty) {
       return openingHours.join('\n');
     } else {
@@ -215,10 +363,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
   Widget _buildRecommendedMenuPage(List<String>? recommendedMenu) {
     if (recommendedMenu == null) {
       return const Center(
-        child: Text(
-          '추천 메뉴를 가져오는 중입니다...',
-          style: TextStyle(fontSize: 16),
-        ),
+        child: CircularProgressIndicator(),
       );
     }
 
@@ -234,16 +379,68 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
           : ListView.builder(
         itemCount: recommendedMenu.length,
         itemBuilder: (context, index) {
+          final line = recommendedMenu[index];
+          // 이모지와 텍스트 스타일링 적용
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              recommendedMenu[index],
-              style: const TextStyle(fontSize: 16),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+                children: _parseLineWithStyles(line),
+              ),
             ),
           );
         },
       ),
     );
+  }
+
+  List<TextSpan> _parseLineWithStyles(String line) {
+    final List<TextSpan> spans = [];
+    final boldRegex = RegExp(r'\*\*(.*?)\*\*');
+    final emojiRegex = RegExp(r'([\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+)');
+    int lastIndex = 0;
+
+    final matches = boldRegex.allMatches(line);
+    for (final match in matches) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(text: line.substring(lastIndex, match.start)));
+      }
+      spans.add(TextSpan(
+          text: match.group(1),
+          style: const TextStyle(fontWeight: FontWeight.bold)));
+      lastIndex = match.end;
+    }
+    if (lastIndex < line.length) {
+      spans.add(TextSpan(text: line.substring(lastIndex)));
+    }
+
+    // 이모지 처리
+    return spans.expand((span) {
+      final text = span.text!;
+      final matches = emojiRegex.allMatches(text);
+      if (matches.isEmpty) {
+        return [span];
+      } else {
+        final List<TextSpan> emojiSpans = [];
+        int lastIndex = 0;
+        for (final match in matches) {
+          if (match.start > lastIndex) {
+            emojiSpans.add(TextSpan(
+                text: text.substring(lastIndex, match.start),
+                style: span.style));
+          }
+          emojiSpans.add(TextSpan(
+              text: match.group(0), style: span.style?.copyWith(fontSize: 20)));
+          lastIndex = match.end;
+        }
+        if (lastIndex < text.length) {
+          emojiSpans.add(
+              TextSpan(text: text.substring(lastIndex), style: span.style));
+        }
+        return emojiSpans;
+      }
+    }).toList();
   }
 
   Widget _buildReviewPage(dynamic review) {
@@ -307,7 +504,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
   Future<void> _summarizeReviews() async {
     const endpoint = 'https://api.openai.com/v1/chat/completions';
 
-    final reviewText = widget.reviews
+    final reviewText = _reviews
         .map((review) =>
     '${review['author_name'] ?? '익명'}: ${review['text'] ?? '내용 없음'}')
         .join('\n');
