@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../MapScreen/entity/entity.dart';
 import 'PlaceDetailsModal.dart';
 
 class PlaceSearchScreen extends StatefulWidget {
@@ -19,6 +20,12 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   final String _openAiKey = dotenv.get("OPENAI_API_KEY");
   Map<String, dynamic> _placeDetails = {};
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _searchPlaces(String query) async {
     if (query.isEmpty) return;
 
@@ -30,14 +37,96 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        final results = data['results'];
+
         setState(() {
-          _searchResults = data['results']; // 검색 결과를 리스트에 저장
+          _searchResults = results;
         });
+
+        // Fetch recommended menu for the top result if it's a restaurant
+        if (results.isNotEmpty) {
+          final topResult = results[0];
+          final types = topResult['types'] as List<dynamic>?;
+          if (types != null && types.contains('restaurant')) {
+            fetchTopResultImmediately(topResult['place_id']);
+          }
+        }
       } else {
         throw Exception('Failed to load places');
       }
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+  void fetchTopResultImmediately(String placeId) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final restaurantName = data['result']['name'] ?? '음식점';
+
+        // Fetch recommended menu using GPT-4o
+        final recommendedMenu = await fetchRecommendedMenu(restaurantName);
+
+        setState(() {
+          _placeDetails['recommendedMenu'] = recommendedMenu;
+        });
+      } else {
+        throw Exception('Failed to fetch place details');
+      }
+    } catch (e) {
+      print('Error fetching details: $e');
+    }
+  }
+
+  Future<List<String>> fetchRecommendedMenu(String restaurantName) async {
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+    final body = {
+      'model': 'gpt-4o-mini',
+      'messages': [
+        {
+          'role': 'system',
+          'content':
+          'You are a helpful assistant who provides menu recommendations.'
+        },
+        {
+          'role': 'user',
+          'content': '다음 음식점의 추천 메뉴를 알려줘: $restaurantName.'
+        }
+      ],
+      'temperature': 0.7
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {
+          'Authorization': 'Bearer $_openAiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final content = data['choices'][0]['message']['content'] as String;
+        return content
+            .split('\n')
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty)
+            .toList();
+      } else {
+        throw Exception('Failed to fetch recommended menu');
+      }
+    } catch (e) {
+      print('Error fetching menu: $e');
+      return [];
     }
   }
 
@@ -52,7 +141,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
         final data = json.decode(response.body);
         final reviews = data['result']['reviews'] ?? [];
 
-        // 타입을 한국어로 변환하여 설명 설정
+        // Translate types to Korean for description
         final types = data['result']['types'] as List<dynamic>?;
 
         final description = (types != null && types.isNotEmpty)
@@ -60,7 +149,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
             : '정보 없음';
 
         final details = {
-          'name': data['result']['name'] ?? '정보 없음', // 장소 이름 추가
+          'name': data['result']['name'] ?? '정보 없음',
           'description': description,
           'phone': data['result']['formatted_phone_number'] ?? '정보 없음',
           'opening_hours':
@@ -68,6 +157,14 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           'wheelchair_accessible':
           data['result']['wheelchair_accessible_entrance'] ?? false,
         };
+
+        // Fetch recommended menu if it's a restaurant
+        if (types != null && types.contains('restaurant')) {
+          final restaurantName = data['result']['name'] ?? '음식점';
+          final recommendedMenu = await fetchRecommendedMenu(restaurantName);
+          details['recommendedMenu'] = recommendedMenu;
+        }
+
         setState(() {
           _placeDetails = details;
         });
@@ -81,7 +178,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           builder: (context) => PlaceDetailsModal(
             placeDetails: _placeDetails,
             reviews: reviews,
-            openAiKey: _openAiKey, // API 키 전달
+            openAiKey: _openAiKey,
           ),
         );
       } else {
@@ -91,6 +188,23 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     } catch (e) {
       print('Error fetching details: $e');
     }
+  }
+
+  // Method to translate English types to Korean
+  String translateType(String type) {
+    const typeMap = {
+      'university': '대학',
+      'point_of_interest': '관광지',
+      'restaurant': '음식점',
+      'cafe': '카페',
+      'hotel': '호텔',
+      'park': '공원',
+      'museum': '박물관',
+      'library': '도서관',
+      'shopping_mall': '쇼핑몰',
+      // Add more mappings as needed
+    };
+    return typeMap[type] ?? type;
   }
 
   @override
@@ -146,9 +260,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                       ),
                     );
                   },
-                  onLongPress: () => _fetchReviewsAndDetails(place['place_id']),
+                  onLongPress: () =>
+                      _fetchReviewsAndDetails(place['place_id']),
                   child: ListTile(
-                    title: Text(place['name']),
+                    title: Text(name),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -180,6 +295,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     );
   }
 }
+
 
 // 영어 타입을 한국어로 변환하는 메서드
 String translateType(String type) {

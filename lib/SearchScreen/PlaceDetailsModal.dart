@@ -1,16 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class PlaceDetailsModal extends StatefulWidget {
   final Map<String, dynamic> placeDetails;
   final List<dynamic> reviews;
-  final String openAiKey; // OpenAI API 키 추가
+  final String openAiKey;
 
   const PlaceDetailsModal({
     super.key,
     required this.placeDetails,
     required this.reviews,
-    required this.openAiKey, // API 키 전달
+    required this.openAiKey,
   });
 
   @override
@@ -18,18 +21,19 @@ class PlaceDetailsModal extends StatefulWidget {
 }
 
 class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
-  bool _isLoading = false; // AI 요약 대기 상태
-  String _summary = ''; // AI 요약 결과 로컬 상태
+  bool _isLoading = false;
+  String _summary = '';
 
   @override
   Widget build(BuildContext context) {
-    final recommendedMenu = widget.placeDetails['recommendedMenu'] ?? [];
+    final recommendedMenu =
+    List<String>.from(widget.placeDetails['recommendedMenu'] ?? []);
 
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.7,
       child: Column(
         children: [
-          // 상단 표시
+          // Top indicator
           Container(
             width: 50,
             height: 5,
@@ -41,16 +45,16 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
           ),
           Expanded(
             child: PageView.builder(
-              itemCount: widget.reviews.length + 2, // 첫 페이지 + 추천 메뉴 + 리뷰 페이지 수
+              itemCount: widget.reviews.length + 2, // First page + recommended menu + reviews
               itemBuilder: (context, index) {
                 if (index == 0) {
-                  // 첫 번째 페이지
+                  // First page
                   return _buildFirstPage();
                 } else if (index == 1) {
-                  // 추천 메뉴 페이지
+                  // Recommended menu page
                   return _buildRecommendedMenuPage(recommendedMenu);
                 } else {
-                  // 리뷰 페이지
+                  // Review pages
                   final review = widget.reviews[index - 2];
                   return _buildReviewPage(review);
                 }
@@ -161,7 +165,6 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
   }
 
   Widget _buildInfoRow({required String title, required String content}) {
-    // 이모지 매핑 추가
     const emojiMap = {
       '장소 이름': '🏠',
       '설명': '📝',
@@ -170,7 +173,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
       '장애인 편의시설': '♿',
     };
 
-    final emoji = emojiMap[title] ?? 'ℹ️'; // 기본 이모지
+    final emoji = emojiMap[title] ?? 'ℹ️';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -226,7 +229,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 리뷰 작성자 프로필 사진
+          // Reviewer profile photo
           CircleAvatar(
             radius: 40,
             backgroundImage: NetworkImage(
@@ -234,7 +237,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             ),
           ),
           const SizedBox(height: 10),
-          // 작성자 이름
+          // Reviewer name
           Text(
             review['author_name'] ?? '익명',
             style: const TextStyle(
@@ -243,7 +246,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             ),
           ),
           const SizedBox(height: 5),
-          // 작성일
+          // Review time
           Text(
             review['relative_time_description'] ?? '',
             style: const TextStyle(
@@ -252,7 +255,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             ),
           ),
           const SizedBox(height: 10),
-          // 별점
+          // Rating
           RatingBarIndicator(
             rating: review['rating']?.toDouble() ?? 0.0,
             itemBuilder: (context, index) => const Icon(
@@ -263,7 +266,7 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
             itemSize: 24.0,
           ),
           const SizedBox(height: 20),
-          // 리뷰 내용
+          // Review content
           Expanded(
             child: SingleChildScrollView(
               child: Text(
@@ -278,8 +281,68 @@ class _PlaceDetailsModalState extends State<PlaceDetailsModal> {
     );
   }
 
-  // 리뷰 요약 메서드 (기존 코드 유지)
   Future<void> _summarizeReviews() async {
-    // 여기에 _summarizeReviews 메서드 구현 코드를 추가하세요.
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+    final reviewText = widget.reviews
+        .map((review) =>
+    '${review['author_name'] ?? '익명'}: ${review['text'] ?? '내용 없음'}')
+        .join('\n');
+
+    final body = {
+      'model': 'gpt-4o-mini',
+      'messages': [
+        {'role': 'system', 'content': 'You are a helpful assistant.'},
+        {
+          'role': 'user',
+          'content':
+          '다음 리뷰의 내용을 요약해줘 :\n$reviewText \n\n\n'
+              '장점 👍🏻, 단점 👎🏻, 주요 특징 (특징 요약) 🔎, 추천 대상 🎯, 평균 가격/비용 💰, '
+              '방문 시간/혼잡도 ⏰, 서비스 품질 🏆, 위치와 접근성 📍, 사용자 경험 등을 🙋🏻'
+              '이모지로 단락을 구분해서 알려줘 (리뷰어의 이름은 내용에 포함하지 마)'
+        }
+      ],
+      'temperature': 0.7
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {
+          'Authorization': 'Bearer ${widget.openAiKey}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      final responseString = utf8.decode(response.bodyBytes);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(responseString);
+        var summary = data['choices']?[0]?['message']?['content']?.trim() ??
+            data['choices']?[0]?['text']?.trim();
+        summary = cleanResponse(summary);
+        setState(() {
+          _summary = summary ?? '요약을 가져오는 데 실패했습니다.';
+        });
+      } else {
+        setState(() {
+          _summary = '요약을 가져오는 데 실패했습니다.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _summary = '요약을 가져오는 도중 오류가 발생했습니다.';
+      });
+    }
+  }
+
+  String cleanResponse(String response) {
+    int advantageIndex = response.indexOf('장점');
+    int colonIndex = response.lastIndexOf(':', advantageIndex);
+    if (colonIndex != -1 && colonIndex < advantageIndex) {
+      return response.substring(colonIndex + 1).trim();
+    }
+    return response;
   }
 }
