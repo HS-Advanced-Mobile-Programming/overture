@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
+import 'package:overture/service/FirestoreScheduleService.dart';
+import 'package:overture/service/ScheduleDto.dart';
 import 'package:provider/provider.dart';
 import '../widgets/day_selector.dart';
 import '../widgets/schedule_item.dart';
@@ -18,6 +20,7 @@ class ScheduleView extends StatefulWidget {
 }
 
 class _ScheduleViewState extends State<ScheduleView> {
+  final FirestoreScheduleService service = FirestoreScheduleService();
   int _selectedDay = 1;
   DateTime? _selectedDate = DateTime.now();
   String selectedFilter = 'Date';
@@ -40,6 +43,7 @@ class _ScheduleViewState extends State<ScheduleView> {
 
   @override
   Widget build(BuildContext context) {
+    final scheduleModel2 = Provider.of<ScheduleModel>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -94,7 +98,7 @@ class _ScheduleViewState extends State<ScheduleView> {
           Expanded(
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
-                originScheduleModel = scheduleModel;
+                originScheduleModel = scheduleModel2;
                 return filteredScheduleModel.schedules.isEmpty
                     ? const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -191,6 +195,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                         Provider.of<ScheduleModel>(context, listen: false);
                     if (schedule == null) {
                       scheduleModel.addSchedule(newSchedule);
+                      service.addMultipleSchedules([ScheduleDto.toScheduleDto(newSchedule, '1')]);
                     } else {
                       scheduleModel.editSchedule(newSchedule);
                     }
