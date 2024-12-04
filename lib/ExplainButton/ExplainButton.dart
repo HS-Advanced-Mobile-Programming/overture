@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../GlobalState/global.dart';
@@ -5,48 +6,94 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-class ExplainButton extends StatelessWidget {
+class ExplainButton extends StatefulWidget {
   final FlutterTts tts; // FlutterTts 필드 추가
 
   const ExplainButton({required this.tts, super.key});
 
   @override
+  State<ExplainButton> createState() => _ExplainButtonState();
+}
+
+class _ExplainButtonState extends State<ExplainButton> {
+  bool _isVisible = false;
+  Timer? _timer;
+  String? _summary; // 설명 데이터를 캐싱
+  bool _isLoading = false; // 로딩 상태 관리
+
+  @override
+  void initState() {
+    super.initState();
+
+    // innerPlace 변경을 감지
+    innerPlace.addListener(() {
+      if (innerPlace.value != null) {
+        _fetchSummary(); // 설명 데이터를 가져옴
+
+        setState(() {
+          _isVisible = true;
+        });
+
+        // 5초 후 버튼을 숨김
+        _timer?.cancel(); // 기존 타이머가 있다면 취소
+        _timer = Timer(const Duration(seconds: 5), () {
+          setState(() {
+            _isVisible = false;
+          });
+        });
+      }
+    });
+  }
+
+  Future<void> _fetchSummary() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    _summary = await _summarizeReviews();
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // 컴포넌트 해제 시 타이머 취소
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String?>(
-      valueListenable: innerPlace, // innerPlace를 Place? 타입으로 사용
+      valueListenable: innerPlace,
       builder: (context, value, child) {
-        return Positioned(
-          bottom: 70, // 아래로부터 70 위치
-          left: MediaQuery.of(context).size.width / 2 - 50, // 화면 중심 계산
-          child: FutureBuilder<String>(
-            future: _summarizeReviews(), // Future 작업
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator(); // 로딩 중 표시
-              } else if (snapshot.hasError) {
-                return Text('오류: ${snapshot.error}'); // 오류 발생 시 메시지 표시
-              } else if (snapshot.hasData) {
-                final summary = snapshot.data ?? '결과 없음';
-                return FilledButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      Colors.blue.shade400,
-                    ),
-                  ),
-                  onPressed: () {
-                    tts.speak(summary); // TTS 실행
-                  },
-                  child: const Text(
-                    "설명 듣기", // 현재 상태 값을 표시
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                );
-              } else {
-                return const Text('결과가 없습니다.'); // 데이터가 없을 때 표시
-              }
-            },
+        return Visibility(
+          visible: _isVisible,
+          child: Positioned(
+            bottom: 70, // 아래로부터 70 위치
+            left: MediaQuery.of(context).size.width / 2 - 50, // 화면 중심 계산
+            child: _isLoading
+                ? const CircularProgressIndicator() // 로딩 중 표시
+                : FilledButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(
+                  Colors.blue.shade400,
+                ),
+              ),
+              onPressed: () {
+                // 버튼 클릭 시에도 TTS 실행
+                if (_summary != null) {
+                  widget.tts.speak(_summary!);
+                }
+              },
+              child: const Text(
+                "설명 듣기", // 버튼 텍스트
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         );
       },

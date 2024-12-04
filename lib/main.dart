@@ -76,7 +76,7 @@ class _MyApp extends State<MyApp> {
           if (scheduleDate.year == today.year
               && scheduleDate.month == today.month
               && scheduleDate.day == today.day
-              && calculateDistance(schedule.latLng, myPos) <= 50000
+              && calculateDistance(schedule.latLng, myPos) <= 5
           ) {
               innerPlace.value = schedule.place;
           }
