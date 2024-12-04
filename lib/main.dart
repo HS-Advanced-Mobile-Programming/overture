@@ -14,8 +14,6 @@ import 'GlobalState/global.dart';
 import 'HomeScreen/HomeScreen.dart';
 import 'MapScreen/entity/entity.dart';
 
-import 'MenuTranslationScreen/MenuTranslationScreen.dart';
-
 //TODO main icon 움직이게
 
 void main() async {

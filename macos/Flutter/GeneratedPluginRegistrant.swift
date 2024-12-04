@@ -5,7 +5,6 @@
 import FlutterMacOS
 import Foundation
 
-import flutter_tts
 import file_selector_macos
 import flutter_tts
 import geolocator_apple
