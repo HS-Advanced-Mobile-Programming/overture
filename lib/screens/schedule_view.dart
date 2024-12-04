@@ -19,7 +19,7 @@ class ScheduleView extends StatefulWidget {
 
 class _ScheduleViewState extends State<ScheduleView> {
   int _selectedDay = 1;
-  DateTime? _selectedDate;
+  DateTime? _selectedDate = DateTime.now();
   String selectedFilter = 'Date';
   late ScheduleModel filteredScheduleModel = ScheduleModel();
   late ScheduleModel originScheduleModel;
@@ -33,7 +33,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                 (DateFormat('yyyy-MM-dd HH:mm').parse(b.time)))); // 최신순
       } else if (filter == 'Name') {
         filteredScheduleModel.schedules
-            .sort((a, b) => b.title.compareTo(a.title)); // 최신순
+            .sort((a, b) => a.title.compareTo(b.title)); // 최신순
       }
     });
   }
