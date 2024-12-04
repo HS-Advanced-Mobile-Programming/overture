@@ -77,13 +77,15 @@ class _ExplainButtonState extends State<ExplainButton> {
           visible: _isVisible,
           child: Positioned(
             bottom: 70, // 아래로부터 70 위치
-            left: MediaQuery.of(context).size.width / 2 - 50, // 화면 중심 계산
+            right: 16, // 화면 중심 계산
+            width: 60,
+            height: 60,
             child: _isLoading
-                ? Center()
-                : FilledButton(
+                ? const CircularProgressIndicator()
+                : IconButton(
               style: ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(
-                  Colors.blue.shade400,
+                  Color(0xFF74AA9C),
                 ),
               ),
               onPressed: () {
@@ -92,12 +94,10 @@ class _ExplainButtonState extends State<ExplainButton> {
                   widget.tts.speak(_summary!);
                 }
               },
-              child: const Text(
-                "설명 듣기", // 버튼 텍스트
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              icon: Image.asset(
+                  'asset/img/gpt.png',
+                  color: Colors.white,
+              )
             ),
           ),
         );
