@@ -38,14 +38,12 @@ class _ScheduleViewState extends State<ScheduleView> {
         filteredScheduleModel.schedules
             .sort((a, b) => a.title.compareTo(b.title)); // 최신순
       }
-      print("Filtering");
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final scheduleModel = Provider.of<ScheduleModel>(context);
-    print("build scheduleModel : ${scheduleModel.schedules.length}");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -70,7 +68,6 @@ class _ScheduleViewState extends State<ScheduleView> {
                 filteredScheduleModel.addScheduleList(
                     ScheduleModel.schedulesForDate(
                         _selectedDate!, originScheduleList));
-                print("Day Selected");
               });
             },
           ),
@@ -101,16 +98,9 @@ class _ScheduleViewState extends State<ScheduleView> {
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
                 originScheduleList = scheduleModel.schedules;
-                print(
-                    "originScheduleModel length: ${originScheduleList.length}");
-                print(
-                    "scheduleModel length: ${scheduleModel.schedules.length}");
                 filteredScheduleModel.addScheduleList(
                     ScheduleModel.schedulesForDate(
                         _selectedDate!, originScheduleList));
-                if (originScheduleList.length == 159) {
-                  print("First 159");
-                }
                 return filteredScheduleModel.schedules.isEmpty
                     ? const Center(
                         child: Text(
@@ -145,8 +135,9 @@ class _ScheduleViewState extends State<ScheduleView> {
                                         filteredScheduleModel
                                             .addSchedule(schedule);
                                         service.addSchedule(
-                                            ScheduleDto.toScheduleDto(schedule, '1'), scheduleModel);
-                                        print("call 되돌리기");
+                                            ScheduleDto.toScheduleDto(
+                                                schedule, '1'),
+                                            scheduleModel);
                                       },
                                     ),
                                   ),
@@ -207,14 +198,15 @@ class _ScheduleViewState extends State<ScheduleView> {
                         Provider.of<ScheduleModel>(context, listen: false);
                     if (schedule == null) {
                       // 중복된 일정을 추가하지 않도록 확인
-                      if (!scheduleModel.schedules.any((schedule) => schedule.id == newSchedule.id)) {
-                        print(
-                            "scheduleModel length: ${scheduleModel.schedules.length}");
+                      if (!scheduleModel.schedules
+                          .any((schedule) => schedule.id == newSchedule.id)) {
                         service.addSchedule(
-                            ScheduleDto.toScheduleDto(newSchedule, '1'), scheduleModel);
+                            ScheduleDto.toScheduleDto(newSchedule, '1'),
+                            scheduleModel);
                       }
                     } else {
-                     service.updateSchedule(newSchedule.id, ScheduleDto.toScheduleDto(newSchedule, '1'));
+                      service.updateSchedule(newSchedule.id,
+                          ScheduleDto.toScheduleDto(newSchedule, '1'));
                       scheduleModel.editSchedule(newSchedule);
                     }
                     Navigator.pop(context);
