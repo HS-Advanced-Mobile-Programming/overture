@@ -2,19 +2,31 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
+import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
+import 'package:overture/models/schedule_model_files/schedule_model.dart';
+import 'package:provider/provider.dart';
 
 //TODO main icon 움직이게
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized;
   await dotenv.load(fileName: ".env");
+  await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ScheduleModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -53,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const ScheduleScreen(),
     const TravelScreen(),
     const SettingScreen(),
+    const MapScreen()
   ];
 
   void _onItemTapped(int index) {
@@ -71,9 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Image.asset('asset/img/appicon.png')
         ),
         actions: [IconButton(onPressed: null, icon: Icon(Icons.notifications_none,size: 40))],
-        backgroundColor: const Color(0xFFF0F4F6)
+        backgroundColor: Color(0xFFF0F4F6)
       ),
-      backgroundColor: const Color(0xFFF0F4F6),
+      backgroundColor: Color(0xFFF0F4F6),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -99,6 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.person),
             label: '마이 페이지',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: '지도'
+          )
         ],
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
