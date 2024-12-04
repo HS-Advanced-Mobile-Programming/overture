@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../MapScreen/entity/entity.dart';
 import 'PlaceDetailsModal.dart';
 
+
 class PlaceSearchScreen extends StatefulWidget {
   const PlaceSearchScreen({super.key});
 
@@ -18,7 +19,6 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   List<dynamic> _searchResults = [];
   final String _apiKey = dotenv.get("GOOGLE_PLACES_API_KEY");
   final String _openAiKey = dotenv.get("OPENAI_API_KEY");
-  Map<String, dynamic> _placeDetails = {};
 
   @override
   void dispose() {
@@ -35,22 +35,16 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     try {
       final response = await http.get(url);
 
+      // UTF-8로 디코딩
+      final responseString = utf8.decode(response.bodyBytes);
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(responseString);
         final results = data['results'];
 
         setState(() {
           _searchResults = results;
         });
-
-        // 첫 번째 결과가 음식점인 경우 즉시 추천 메뉴 요청
-        if (results.isNotEmpty) {
-          final topResult = results[0];
-          final types = topResult['types'] as List<dynamic>?;
-          if (types != null && types.contains('restaurant')) {
-            fetchRecommendedMenuForPlace(topResult['place_id']);
-          }
-        }
       } else {
         throw Exception('Failed to load places');
       }
@@ -59,106 +53,17 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     }
   }
 
-  void fetchRecommendedMenuForPlace(String placeId) async {
-    final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
-
-    try {
-      final response = await http.get(url);
-
-      final responseString = utf8.decode(response.bodyBytes);
-      if (response.statusCode == 200) {
-        final data = json.decode(responseString);
-        final restaurantName = data['result']['name'] ?? '음식점';
-
-        // GPT-4o로 추천 메뉴 가져오기
-        final recommendedMenu = await fetchRecommendedMenu(restaurantName);
-
-        setState(() {
-          _placeDetails['recommendedMenu_$placeId'] = recommendedMenu;
-        });
-
-        // 모달 업데이트를 위해 상태를 변경
-        if (mounted) {
-          setState(() {});
-        }
-      } else {
-        throw Exception('Failed to fetch place details');
-      }
-    } catch (e) {
-      print('Error fetching details: $e');
-    }
-  }
-
-  Future<List<String>> fetchRecommendedMenu(String restaurantName) async {
-    const endpoint = 'https://api.openai.com/v1/chat/completions';
-
-    final body = {
-      'model': 'gpt-4o-mini',
-      'messages': [
-        {
-          'role': 'system',
-          'content':
-          'You are a helpful assistant who provides menu recommendations.'
-        },
-        {
-          'role': 'user',
-          'content': '다음 음식점의 추천 메뉴를 알려줘: $restaurantName.'
-        }
-      ],
-      'temperature': 0.7
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(endpoint),
-        headers: {
-          'Authorization': 'Bearer $_openAiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
-
-      final responseString = utf8.decode(response.bodyBytes);
-      if (response.statusCode == 200) {
-        final data = json.decode(responseString);
-        final content = data['choices'][0]['message']['content'] as String;
-        return content
-            .split('\n')
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty)
-            .toList();
-      } else {
-        throw Exception('Failed to fetch recommended menu');
-      }
-    } catch (e) {
-      print('Error fetching menu: $e');
-      return [];
-    }
-  }
-
   void _fetchReviewsAndDetails(String placeId) async {
-    // 모달을 즉시 표시
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => PlaceDetailsModal(
-        placeDetails: {'placeId': placeId},
-        reviews: [],
-        openAiKey: _openAiKey,
-      ),
-    );
-
+    // 장소 상세 정보와 리뷰를 가져옵니다.
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&language=ko&key=$_apiKey');
 
     try {
       final response = await http.get(url);
 
+      // UTF-8로 디코딩
       final responseString = utf8.decode(response.bodyBytes);
+
       if (response.statusCode == 200) {
         final data = json.decode(responseString);
         final reviews = data['result']['reviews'] ?? [];
@@ -172,44 +77,32 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
 
         final isRestaurant = types != null && types.contains('restaurant');
 
-        final details = {
+        final placeDetails = {
           'placeId': placeId,
           'name': data['result']['name'] ?? '정보 없음',
           'description': description,
           'phone': data['result']['formatted_phone_number'] ?? '정보 없음',
-          'opening_hours':
-          data['result']['opening_hours']?['weekday_text'] ?? [],
+          'opening_hours': data['result']['opening_hours']?['weekday_text'] ?? [],
           'wheelchair_accessible':
           data['result']['wheelchair_accessible_entrance'] ?? false,
           'isRestaurant': isRestaurant,
         };
 
-        if (isRestaurant) {
-          // 이미 추천 메뉴를 가져왔는지 확인
-          List<String>? recommendedMenu =
-          _placeDetails['recommendedMenu_$placeId'];
-
-          if (recommendedMenu == null) {
-            // 추천 메뉴를 가져오지 않은 경우, 가져오기
-            recommendedMenu =
-            await fetchRecommendedMenu(details['name'] ?? '음식점');
-            _placeDetails['recommendedMenu_$placeId'] = recommendedMenu;
-          }
-
-          details['recommendedMenu'] = recommendedMenu;
-        }
-
-        setState(() {
-          _placeDetails = details;
-        });
-
-        // 모달 업데이트를 위해 상태를 변경
-        if (mounted) {
-          setState(() {});
-        }
+        // 모달을 표시합니다.
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) => PlaceDetailsModal(
+            placeDetails: placeDetails,
+            reviews: reviews,
+            openAiKey: _openAiKey, // API 키 전달
+          ),
+        );
       } else {
         print('API 오류: ${response.statusCode}');
-        throw Exception('Failed to load details and reviews');
       }
     } catch (e) {
       print('Error fetching details: $e');
@@ -226,6 +119,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
+          // 검색 바
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -249,6 +143,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
               ],
             ),
           ),
+          // 검색 결과 리스트
           Expanded(
             child: ListView.builder(
               itemCount: _searchResults.length,
@@ -269,8 +164,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                       ),
                     );
                   },
-                  onLongPress: () =>
-                      _fetchReviewsAndDetails(place['place_id']),
+                  onLongPress: () => _fetchReviewsAndDetails(place['place_id']),
                   child: ListTile(
                     title: Text(name),
                     subtitle: Column(
@@ -304,7 +198,6 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     );
   }
 }
-
 
 
 // 영어 타입을 한국어로 변환하는 메서드
