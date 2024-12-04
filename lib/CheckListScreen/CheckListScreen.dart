@@ -63,7 +63,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableEndDate = _endDate;
     this.editableBoardingTime = _boardingTime;
 
-    this.clothingList.add(ClothesCheckListItem(id: "0",itemName: "상의",description: "회의용", quantity: 3, onItemDelete: deleteClothesById, ),);
+    // this.clothingList.add(ClothesCheckListItem(id: "0",itemName: "상의",description: "회의용", quantity: 3, onItemDelete: deleteClothesById, ),);
   }
 
   void deleteClothesById(String id){

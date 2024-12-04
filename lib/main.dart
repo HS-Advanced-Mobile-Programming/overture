@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -12,10 +13,17 @@ import 'package:overture/TravelScreen.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
 
+import 'firebase_options.dart';
+
 //TODO main icon 움직이게
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized;
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
