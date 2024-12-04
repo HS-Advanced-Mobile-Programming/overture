@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
+import 'package:overture/service/FirestoreScheduleService.dart';
+import 'package:overture/service/ScheduleDto.dart';
 import 'package:provider/provider.dart';
 import '../widgets/day_selector.dart';
 import '../widgets/schedule_item.dart';
@@ -18,14 +20,14 @@ class ScheduleView extends StatefulWidget {
 }
 
 class _ScheduleViewState extends State<ScheduleView> {
+  final FirestoreScheduleService service = FirestoreScheduleService();
   int _selectedDay = 1;
-  DateTime? _selectedDate;
+  DateTime? _selectedDate = DateTime.now();
   String selectedFilter = 'Date';
   late ScheduleModel filteredScheduleModel = ScheduleModel();
-  late ScheduleModel originScheduleModel;
+  late List<Schedule> originScheduleList;
 
   void _sortItems(String filter) {
-    setState(() {
       selectedFilter = filter;
       if (filter == 'Date') {
         filteredScheduleModel.schedules.sort((a, b) =>
@@ -33,13 +35,13 @@ class _ScheduleViewState extends State<ScheduleView> {
                 (DateFormat('yyyy-MM-dd HH:mm').parse(b.time)))); // 최신순
       } else if (filter == 'Name') {
         filteredScheduleModel.schedules
-            .sort((a, b) => b.title.compareTo(a.title)); // 최신순
+            .sort((a, b) => a.title.compareTo(b.title)); // 최신순
       }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheduleModel = Provider.of<ScheduleModel>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -61,11 +63,9 @@ class _ScheduleViewState extends State<ScheduleView> {
                   widget.startDate.month,
                   widget.startDate.day + _selectedDay - 1,
                 );
-                _selectedDate ??=
-                    widget.startDate.add(Duration(days: _selectedDay - 1));
-                final filteredSchedules =
-                    originScheduleModel.schedulesForDate(_selectedDate!);
-                filteredScheduleModel.addScheduleList(filteredSchedules);
+                filteredScheduleModel.addScheduleList(
+                    ScheduleModel.schedulesForDate(
+                        _selectedDate!, originScheduleList));
               });
             },
           ),
@@ -75,7 +75,12 @@ class _ScheduleViewState extends State<ScheduleView> {
               PopupMenuButton<String>(
                 onSelected: (value) {
                   _sortItems(value); // 정렬 함수 호출
+                  setState(() {
+                    selectedFilter = value;
+                  });
                 },
+                color: Colors.white,
+                offset: const Offset(-25, 40),
                 itemBuilder: (BuildContext context) => [
                   PopupMenuItem(
                     value: 'Date',
@@ -94,16 +99,17 @@ class _ScheduleViewState extends State<ScheduleView> {
           Expanded(
             child: Consumer<ScheduleModel>(
               builder: (context, scheduleModel, child) {
-                originScheduleModel = scheduleModel;
+                originScheduleList = scheduleModel.schedules;
+                filteredScheduleModel.addScheduleList(
+                    ScheduleModel.schedulesForDate(
+                        _selectedDate!, originScheduleList));
+                _sortItems(selectedFilter);
                 return filteredScheduleModel.schedules.isEmpty
-                    ? const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "이 날짜에 예정된 일정이 없습니다.",
-                            style: TextStyle(color: Color(0xff5F5F5F)),
-                          )
-                        ],
+                    ? const Center(
+                        child: Text(
+                          "이 날짜에 예정된 일정이 없습니다.",
+                          style: TextStyle(color: Color(0xff5F5F5F)),
+                        ),
                       )
                     : ListView.builder(
                         itemCount: filteredScheduleModel.schedules.length,
@@ -112,8 +118,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                               filteredScheduleModel.schedules[index];
                           return Padding(
                             padding: const EdgeInsets.all(15),
-                            child: Container(
-                                child: ScheduleItem(
+                            child: ScheduleItem(
                               schedule: schedule,
                               onEdit: () {
                                 _showScheduleForm(context, schedule: schedule);
@@ -122,6 +127,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                                 filteredScheduleModel
                                     .deleteSchedule(schedule.id);
                                 scheduleModel.deleteSchedule(schedule.id);
+                                service.deleteSchedule(schedule.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: const Text('일정이 삭제되었습니다.'),
@@ -130,13 +136,16 @@ class _ScheduleViewState extends State<ScheduleView> {
                                       onPressed: () {
                                         filteredScheduleModel
                                             .addSchedule(schedule);
-                                        scheduleModel.addSchedule(schedule);
+                                        service.addSchedule(
+                                            ScheduleDto.toScheduleDto(
+                                                schedule, '1'),
+                                            scheduleModel);
                                       },
                                     ),
                                   ),
                                 );
                               },
-                            )),
+                            ),
                           );
                         },
                       );
@@ -190,8 +199,16 @@ class _ScheduleViewState extends State<ScheduleView> {
                     final scheduleModel =
                         Provider.of<ScheduleModel>(context, listen: false);
                     if (schedule == null) {
-                      scheduleModel.addSchedule(newSchedule);
+                      // 중복된 일정을 추가하지 않도록 확인
+                      if (!scheduleModel.schedules
+                          .any((schedule) => schedule.id == newSchedule.id)) {
+                        service.addSchedule(
+                            ScheduleDto.toScheduleDto(newSchedule, '1'),
+                            scheduleModel);
+                      }
                     } else {
+                      service.updateSchedule(newSchedule.id,
+                          ScheduleDto.toScheduleDto(newSchedule, '1'));
                       scheduleModel.editSchedule(newSchedule);
                     }
                     Navigator.pop(context);
