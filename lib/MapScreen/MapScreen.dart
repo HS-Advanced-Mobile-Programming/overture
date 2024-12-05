@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../GlobalState/global.dart';
 import '../SearchScreen/PlaceDetailsModal.dart';
 import '../SearchScreen/SearchScreen.dart';
+import '../models/schedule_model_files/schedule_model.dart';
 import 'TopWidget.dart';
 import 'BottomWidget.dart';
 import 'entity/entity.dart';
@@ -53,7 +54,7 @@ class _MapScreenState extends State<MapScreen> {
     schedules.sort((a, b) => a.time.compareTo(b.time));
 
     for (int i = 0; i < schedules.length; i++) {
-      if (i > 0 && schedules[i].time.day != schedules[i - 1].time.day) {
+      if (i > 0 && Schedule.dateTime(schedules[i].time).day != Schedule.dateTime(schedules[i-1].time).day) {
         count = 1; // 날짜가 바뀌면 count 초기화
         colorCount++;
       }
@@ -72,9 +73,10 @@ class _MapScreenState extends State<MapScreen> {
     final filteredSchedules = selectedDate == null
         ? schedules
         : schedules.where((schedule) {
-      return schedule.time.year == selectedDate!.year &&
-          schedule.time.month == selectedDate!.month &&
-          schedule.time.day == selectedDate!.day;
+      var scheduleTime = Schedule.dateTime(schedule.time);
+      return scheduleTime.year == selectedDate!.year &&
+          scheduleTime.month == selectedDate!.month &&
+          scheduleTime.day == selectedDate!.day;
     }).toList();
 
     return filteredSchedules.asMap().entries.map((entry) {
@@ -83,7 +85,7 @@ class _MapScreenState extends State<MapScreen> {
 
       return Marker(
         markerId: MarkerId(schedule.id.toString()),
-        position: schedule.latLng,
+        position: LatLng(double.parse(schedule.x!), double.parse(schedule.y!)),
         icon: customIcons.isNotEmpty ? customIcons[index] : BitmapDescriptor.defaultMarker,
         infoWindow: InfoWindow(
           title: schedule.title,

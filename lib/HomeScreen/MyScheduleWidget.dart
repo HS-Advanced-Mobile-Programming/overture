@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:intl/intl.dart';
-import 'package:overture/MapScreen/entity/entity.dart';
 
 import '../service/FirestoreScheduleService.dart';
 import '../service/ScheduleDto.dart';

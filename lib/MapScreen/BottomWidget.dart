@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'entity/entity.dart';
+import '../models/schedule_model_files/schedule_model.dart';
 
 class BottomWidget extends StatefulWidget {
   final List<Schedule> datas; // 외부에서 전달받을 데이터
@@ -145,7 +145,7 @@ class _BottomWidgetState extends State<BottomWidget> {
   List<DateTime> _getUniqueDates(List<Schedule> schedules) {
     final uniqueDates = <DateTime>{};
     for (var schedule in schedules) {
-      uniqueDates.add(DateTime(schedule.time.year, schedule.time.month, schedule.time.day));
+      uniqueDates.add(Schedule.dateTime(schedule.time));
     }
     return uniqueDates.toList()..sort();
   }

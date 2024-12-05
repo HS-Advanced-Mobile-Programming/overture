@@ -78,13 +78,14 @@ class _MyApp extends State<MyApp> {
 
         schedules.forEach((schedule) {
           // 스케줄 날짜만 추출
-          final scheduleDate = DateTime(schedule.time.year, schedule.time.month, schedule.time.day);
+          var scheduleTime = Schedule.dateTime(schedule.time);
+          final scheduleDate = DateTime(scheduleTime.year, scheduleTime.month, scheduleTime.day);
 
           // 날짜 비교
           if (scheduleDate.year == today.year
               && scheduleDate.month == today.month
               && scheduleDate.day == today.day
-              && calculateDistance(schedule.latLng, myPos) <= 5
+              && calculateDistance(LatLng(double.parse(schedule.x!), double.parse(schedule.y!)), myPos) <= 5
           ) {
               innerPlace.value = schedule.place;
           }

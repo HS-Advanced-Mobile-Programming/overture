@@ -19,6 +19,26 @@ class Schedule {
     this.x,
     this.y
   });
+
+  /// time 값을 DateTime으로 변환하여 반환
+  static DateTime dateTime(String time) {
+    try {
+      return DateFormat('yyyy-MM-dd HH:mm').parse(time);
+    } catch (e) {
+      debugPrint('Error parsing time: $e');
+      return DateTime(0); // 오류 발생 시 null 반환
+    }
+  }
+
+  /// DateTime 값을 String으로 변환
+  static String dateTimeToString(DateTime dateTime) {
+    try {
+      return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    } catch (e) {
+      debugPrint('Error formatting DateTime: $e');
+      return ''; // 오류 발생 시 빈 문자열 반환
+    }
+  }
 }
 
 class ScheduleModel extends ChangeNotifier {
