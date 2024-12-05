@@ -1,6 +1,5 @@
 import 'dart:ffi';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
@@ -76,6 +75,8 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableStartDate = _startDate;
     this.editableEndDate = _endDate;
     this.editableBoardingTime = _boardingTime;
+
+    clothesCheckListModel.getAllClothes();
 
     // this.clothingList.add(ClothesCheckListItem(id: "0",itemName: "상의",description: "회의용", quantity: 3, onItemDelete: deleteClothesById, ),);
   }
@@ -155,14 +156,11 @@ class _CheckListScreenState extends State<CheckListScreen> {
           ClothingExpansionTile(
             clothingList: this.clothesCheckListModel.clothesCheckList,
             onItemAdded: (ClothesContent newClothe){
-              setState(() {
-                this.clothesCheckListModel.addClothe(newClothe);
-              });
-
+              clothesCheckListModel.addClothe(newClothe);
             },
-            onItemDelete: (String target){
+            onItemDelete: (String id){
               setState(() {
-                this.clothesCheckListModel.deleteClothes(target);
+                clothesCheckListModel.deleteClothes(id);
               });
             },
           )
@@ -325,9 +323,6 @@ class _CheckListScreenState extends State<CheckListScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  //TODO firebase에 저장 필요
-                  //EX : _boardingTimeController.text로 값 가져오기
-                  //지금은 UI 반영만 된 상태
 
                   String newStartDate = editableStartDate;
                   String newEndDate = editableEndDate;

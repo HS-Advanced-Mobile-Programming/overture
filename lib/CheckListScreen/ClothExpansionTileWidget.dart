@@ -7,7 +7,7 @@ import 'ClothingChecklistItemWidget.dart';
 class ClothingExpansionTile extends StatefulWidget {
   final List<ClothesContent> clothingList;
   final Function(ClothesContent newItem) onItemAdded;
-  final Function(String targetid) onItemDelete; //TODO 삭제 안됨
+  final Function(String targetid) onItemDelete;
 
   ClothingExpansionTile({
     required this.clothingList,
@@ -29,7 +29,7 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
       children: [
         Column( children: widget.clothingList.map((item) =>
             ClothesCheckListItem(
-            id: item.id,
+            id: item.clotheId,
             itemName: item.itemName,
             description: item.description,
             quantity: item.quantity,
@@ -136,7 +136,7 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
                                             onPressed: () {
                                               int size = widget.clothingList.length;
                                               ClothesContent newItem = ClothesContent(
-                                                  id: "${++size}",
+                                                  clotheId: "${++size}",
                                                   itemName: _newClothesItemName.text,
                                                   description: _newCLothesItemdescription.text,
                                                   quantity: _newCounterValue,

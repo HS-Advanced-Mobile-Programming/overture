@@ -33,7 +33,6 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
         children: [
           Checkbox(value: widget.checked, onChanged: (value){
             setState(() {
-              // TODO 여기서 파베로 요청
               widget.checked = value ?? false;
             });
           }),

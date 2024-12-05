@@ -19,11 +19,6 @@ class EssentialCheckListItem extends StatefulWidget {
 }
 
 class _EssentialCheckListItemState extends State<EssentialCheckListItem> {
-  Map<String, String> clickableWords = {
-    "무비자": "비자가 없음.",
-    "단기체류": "객지에 가서 단기간 동안 머물러 있음.",
-    "장기체류": "객지에 가서 장기간 동안 머물러 있음.",
-  };
 
   // [참조] https://musubi-life.tistory.com/29
   // Tooltip을 띄우는 함수
@@ -62,7 +57,7 @@ class _EssentialCheckListItemState extends State<EssentialCheckListItem> {
   @override
   Widget build(BuildContext context) {
     Map<String, String> clickableWords = {
-      "무비자": "비자sfdgggggggggfdgsfdgsfdgdgdgfgdfgsdgf가 없음.",
+      "무비자": "비자가 없음.",
       "단기체류": "객지에 가서 단기간 동안 머물러 있음.",
       "장기체류": "객지에 가서 장기간 동안 머물러 있음.",
     };
