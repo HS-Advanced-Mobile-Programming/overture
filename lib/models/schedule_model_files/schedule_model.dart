@@ -7,6 +7,8 @@ class Schedule {
   String content;
   String time;
   String place;
+  String? x;
+  String? y;
 
   Schedule({
     required this.id,
@@ -14,6 +16,8 @@ class Schedule {
     required this.content,
     required this.time,
     required this.place,
+    this.x,
+    this.y
   });
 }
 
@@ -48,7 +52,7 @@ class ScheduleModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Schedule> schedulesForDate(DateTime selectedDate) {
+  static List<Schedule> schedulesForDate(DateTime selectedDate, List<Schedule> _schedules) {
     return _schedules.where((schedule) {
       try {
         final scheduleDate = DateFormat('yyyy-MM-dd HH:mm').parse(schedule.time);
