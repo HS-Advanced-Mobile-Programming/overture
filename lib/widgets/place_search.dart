@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:overture/models/place_model_files/place_model.dart';
+import 'package:overture/widgets/place_repository.dart';
 import 'package:overture/widgets/schedule_bottom_sheet.dart';
 
 class PlaceSearch extends StatefulWidget {
-  final Function(Map<String, String>) onPlaceSelected;
+  final Function(Place) onPlaceSelected;
 
   const PlaceSearch({super.key, required this.onPlaceSelected});
 
@@ -11,24 +13,40 @@ class PlaceSearch extends StatefulWidget {
 }
 
 class _PlaceSearchState extends State<PlaceSearch> {
-  List<Map<String, String>> _searchResults = [];
+  final PlaceRepository repository = PlaceRepository();
+  List<Place> places = [];
+
+  void fetchData(String query) async {
+    try {
+      final results = await repository.fetchAndCachePlaces(query);
+      setState(() {
+        places = results;
+      });
+      for (Place place in places) {
+        print("${place.placeName} ${place.addressName}");
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  void loadCachedData() {
+    setState(() {
+      places = repository.getCachedPlaces();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadCachedData(); // 앱 실행 시 캐시 데이터 로드
+  }
+
   final text =
       "한성대학교는 서울 성북구와 종로구에 위치한 사립 대학교로, 1972년에 설립되었습니다. 주요 학부로는 인문대학, 사회과학대학, 예술대학, 공과대학 등이 있으며 다양한 학부와 전공을 제공합니다. 학부와 석사, 박사 과정에서 공학, 경영학, 컴퓨터 과학, 미술, 패션 디자인 등 다양한 학문을 다룹니다";
 
   void _performSearch(String value) {
-    // 실제 구현에서는 API 호출을 통해 장소를 검색해야 합니다.
-    // 여기서는 예시 데이터를 사용합니다.
-    setState(() {
-      _searchResults = [
-        {'name': '서울타워', 'address': '서울특별시 용산구 남산공원길 105'},
-        {'name': '경복궁', 'address': '서울특별시 종로구 사직로 161'},
-        {'name': '명동성당', 'address': '서울특별시 중구 명동길 74'},
-      ]
-          .where((place) =>
-              place['name']!.toLowerCase().contains(value.toLowerCase()) ||
-              place['address']!.toLowerCase().contains(value.toLowerCase()))
-          .toList();
-    });
+    fetchData(value);
   }
 
   @override
@@ -69,15 +87,15 @@ class _PlaceSearchState extends State<PlaceSearch> {
                   const Divider(
                 color: Color(0xffD2D2D2),
               ),
-              itemCount: _searchResults.length,
+              itemCount: places.length,
               itemBuilder: (context, index) {
-                final place = _searchResults[index];
+                final place = places[index];
                 return ListTile(
                   tileColor: Colors.white,
-                  title: Text(place['name']!,
+                  title: Text(place.placeName,
                       style: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 20)),
-                  subtitle: Text(place['address']!,
+                  subtitle: Text(place.addressName,
                       style: const TextStyle(
                           fontWeight: FontWeight.w400, fontSize: 12)),
                   trailing: IconButton(
@@ -96,7 +114,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
                         context: context,
                         builder: (BuildContext context) {
                           return ScheduleBottomSheet(
-                            title: place['name']!,
+                            title: place.placeName,
                             button: const Text(
                               '닫기',
                               style: TextStyle(
