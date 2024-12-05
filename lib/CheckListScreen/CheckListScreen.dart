@@ -1,5 +1,6 @@
 import 'dart:ffi';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:expandable_widgets/expandable_widgets.dart';
@@ -8,6 +9,8 @@ import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:overture/CheckListScreen/ClothExpansionTileWidget.dart';
 import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/check_model_files/essential_model.dart';
+import '../models/check_model_files/airportinfo_model.dart';
+import '../service/FirestoreAirportinfoService.dart';
 import 'EssentialCheckListWidget.dart';
 
 
@@ -19,8 +22,6 @@ class CheckListScreen extends StatefulWidget {
 }
 
 class _CheckListScreenState extends State<CheckListScreen> {
-
-  //TODO DB에서 읽어옴 -> 데이터 없을 때도 출력 필요
 
   String _startDate = DateFormat('yyyy.MM.dd').format(DateTime.now());
   String _endDate = DateFormat('yyyy.MM.dd').format(DateTime.now());
@@ -35,7 +36,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
 
   String _airline = "대한항공"; //항공사
   String _flightName = "KE901"; //항공편
-  String _terminalNum="T2"; // 터미널
+  String _terminalNum = "T2"; // 터미널
   String _portNum = "253";// 탑승구
   String _boardingTime = DateFormat('HH:mm').format(DateTime.now());
 
@@ -45,12 +46,29 @@ class _CheckListScreenState extends State<CheckListScreen> {
 
   ClothesCheckListModel clothesCheckListModel = ClothesCheckListModel();
 
+  FirestoreAirportinfoService airportinfoService = FirestoreAirportinfoService();
+
+  Future<void> getAllAirportInfo() async {
+    List<AirportInfoModel> fetchedAirportInfo = await airportinfoService.getAllAirportInfo();
+
+    setState(() {
+      _startDate = fetchedAirportInfo[0].start_date;
+      _endDate = fetchedAirportInfo[0].end_date;
+      _fromAirport = fetchedAirportInfo[0].from_airport;
+      _toAirport = fetchedAirportInfo[0].to_airport;
+      _airline = fetchedAirportInfo[0].air_line;
+      _flightName = fetchedAirportInfo[0].flight_name;
+      _terminalNum = fetchedAirportInfo[0].terminal_num;
+      _portNum = fetchedAirportInfo[0].port_num;
+      _boardingTime = fetchedAirportInfo[0].boarding_time;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    //TODO 파베에서 정보 읽어 오기
-    // 기반으로 TravelEssentialsList 초기화
+
+    getAllAirportInfo();
 
     this._totalDate = (DateFormat("yyyy.MM.dd").parse(_endDate)
         .difference(DateFormat("yyyy.MM.dd").parse(_startDate))
@@ -306,7 +324,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
                 ],
               ),
               TextButton(
-                onPressed: (){
+                onPressed: () {
                   //TODO firebase에 저장 필요
                   //EX : _boardingTimeController.text로 값 가져오기
                   //지금은 UI 반영만 된 상태
@@ -320,6 +338,18 @@ class _CheckListScreenState extends State<CheckListScreen> {
                   String newTerminalNum = _terminalNumController.text;
                   String newPortNum = _portNumController.text;
                   String newBoardingTime = editableBoardingTime;
+
+                  airportinfoService.updateAirportInfo(AirportInfoModel(
+                      air_line: newAirLine,
+                      boarding_time: newBoardingTime,
+                      end_date: newEndDate,
+                      flight_name: newFlightName,
+                      from_airport: newFromAirport,
+                      port_num: newPortNum,
+                      start_date: newStartDate,
+                      terminal_num: newTerminalNum,
+                      to_airport:newToAirport
+                  ));
 
                   setState(() {
                     this._startDate = newStartDate;
