@@ -7,6 +7,8 @@ class Schedule {
   String content;
   String time;
   String place;
+  String? x;
+  String? y;
 
   Schedule({
     required this.id,
@@ -14,6 +16,8 @@ class Schedule {
     required this.content,
     required this.time,
     required this.place,
+    this.x,
+    this.y
   });
 }
 

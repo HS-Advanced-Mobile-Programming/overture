@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:overture/models/place_model_files/place_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:overture/widgets/schedule_bottom_sheet.dart';
 import 'place_search.dart';
@@ -25,6 +26,8 @@ class _ScheduleFormState extends State<ScheduleForm> {
   late TextEditingController _contentController;
   late TextEditingController _timeController;
   late TextEditingController _placeController;
+  late String locationCoordinateX;
+  late String locationCoordinateY;
   DateTime? _pickedTime;
   FToast fToast = FToast();
 
@@ -38,7 +41,8 @@ class _ScheduleFormState extends State<ScheduleForm> {
     _timeController = TextEditingController(text: widget.schedule?.time ?? '');
     _placeController =
         TextEditingController(text: widget.schedule?.place ?? '');
-
+    locationCoordinateX = "0.0";
+    locationCoordinateY = "0.0";
     if (widget.schedule != null) {
       _pickedTime = DateFormat('yyyy-MM-dd HH:mm').parse(widget.schedule!.time);
       _timeController = TextEditingController(
@@ -69,9 +73,11 @@ class _ScheduleFormState extends State<ScheduleForm> {
         return SizedBox(
           height: MediaQuery.of(context).size.height * 0.9,
           child: PlaceSearch(
-            onPlaceSelected: (Map<String, String> selectedPlace) {
+            onPlaceSelected: (Place selectedPlace) {
               setState(() {
-                _placeController.text = selectedPlace['name'] ?? '';
+                _placeController.text = selectedPlace.placeName;
+                locationCoordinateX = selectedPlace.x;
+                locationCoordinateY = selectedPlace.x;
               });
             },
           ),
@@ -166,6 +172,8 @@ class _ScheduleFormState extends State<ScheduleForm> {
               ? DateFormat('yyyy-MM-dd HH:mm').format(_pickedTime!)
               : '',
           place: _placeController.text,
+          x: locationCoordinateX,
+          y: locationCoordinateY
         );
         widget.onSubmit(schedule);
       },

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:overture/CheckListScreen/CheckListScreen.dart';
 import 'package:overture/HomeScreen/HomeScreenBody.dart';
@@ -14,6 +15,7 @@ import 'package:overture/auth/login_screen.dart';
 import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
 import 'package:overture/auth/auth_screen.dart';
+import 'package:overture/models/place_model_files/place_model.dart';
 import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +29,12 @@ import 'models/check_model_files/essential_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('placesBox');
   await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
+  Hive.registerAdapter(PlaceAdapter());
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
   runApp(
     MultiProvider(

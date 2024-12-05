@@ -8,6 +8,8 @@ class ScheduleDto {
   final String place;
   final String time;
   final String content;
+  String? x;
+  String? y;
 
   ScheduleDto(
       {required this.scheduleId,
@@ -15,16 +17,21 @@ class ScheduleDto {
       required this.title,
       required this.place,
       required this.time,
-      required this.content});
+      required this.content,
+      this.x,
+      this.y});
 
   factory ScheduleDto.fromJson(Map<String, dynamic> json, String id) {
     return ScheduleDto(
-        scheduleId: id,
-        userId: json['userId'],
-        title: json['title'],
-        place: json['place'],
-        time: json['time'],
-        content: json['content']);
+      scheduleId: id,
+      userId: json['userId'],
+      title: json['title'],
+      place: json['place'],
+      time: json['time'],
+      content: json['content'],
+      x: json['x'] ?? '',
+      y: json['y'] ?? '',
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -34,7 +41,9 @@ class ScheduleDto {
       'title': title,
       'place': place,
       'time': time,
-      'content': content
+      'content': content,
+      'x': x,
+      'y': y,
     };
   }
 
@@ -44,21 +53,27 @@ class ScheduleDto {
 
   static ScheduleDto toScheduleDto(Schedule schedule, String userId) {
     return ScheduleDto(
-        scheduleId: schedule.id,
-        userId: userId,
-        title: schedule.title,
-        place: schedule.place,
-        time: schedule.time,
-        content: schedule.content);
+      scheduleId: schedule.id,
+      userId: userId,
+      title: schedule.title,
+      place: schedule.place,
+      time: schedule.time,
+      content: schedule.content,
+      x: schedule.x ?? '',
+      y: schedule.y ?? '',
+    );
   }
 
   static Schedule toSchedule(ScheduleDto scheduleDto) {
     return Schedule(
-        id: scheduleDto.scheduleId,
-        title: scheduleDto.title,
-        content: scheduleDto.content,
-        time: scheduleDto.time,
-        place: scheduleDto.place);
+      id: scheduleDto.scheduleId,
+      title: scheduleDto.title,
+      content: scheduleDto.content,
+      time: scheduleDto.time,
+      place: scheduleDto.place,
+      x: scheduleDto.x ?? '',
+      y: scheduleDto.y ?? '',
+    );
   }
 
   void updateScheduleId(String id) {
