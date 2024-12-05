@@ -10,6 +10,10 @@ import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
 import 'package:overture/TravelScreen.dart';
+import 'package:overture/auth/login_screen.dart';
+import 'package:overture/auth/signup_screen.dart';
+import 'package:overture/home_screen.dart';
+import 'package:overture/auth/auth_screen.dart';
 import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
@@ -36,6 +40,7 @@ void main() async {
       ],
       child: const MyApp(),
     ),
+
   );
 }
 
@@ -44,8 +49,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: HomeScreen(),
+    return MaterialApp(
+      initialRoute: '/',
+      routes: {
+        '/home': (context) => const HomeScreen(),
+        '/signup': (context) => SignUpScreen(),
+        '/login': (context) => LoginScreen(),
+        '/': (context) => MainScreen()
+      },
     );
   }
 }
@@ -61,81 +72,5 @@ class NoCheckCertificateHttpOverrides extends HttpOverrides {
     return super.createHttpClient(context)
       ..badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
-  }
-}
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreenBody(),
-    const CheckListScreen(),
-    ScheduleScreen(),
-    const TravelScreen(),
-    const SettingScreen(),
-    const MapScreen()
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Overture', style: TextStyle(fontWeight: FontWeight.bold)),
-        leading: Padding(
-          padding: EdgeInsets.all(5.0),
-          child: Image.asset('asset/img/appicon.png')
-        ),
-        actions: [IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (context) => ImagePickerScreen()));}, icon: Icon(Icons.camera_alt_outlined,size: 40))],
-        backgroundColor: Color(0xFFF0F4F6)
-      ),
-      backgroundColor: Color(0xFFF0F4F6),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '홈',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check),
-            label: '체크 리스트',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '내 일정',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.airplane_ticket),
-            label: '나의 여행',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '마이 페이지',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: '지도'
-          )
-        ],
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
-      ),
-    );
   }
 }
