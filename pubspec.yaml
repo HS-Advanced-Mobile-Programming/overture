@@ -50,7 +50,12 @@ dependencies:
   counter_button: ^1.0.1
   google_maps_flutter: ^2.10.0
   geolocator: ^13.0.2
+  image_picker: ^1.1.2
+  google_mlkit_text_recognition: ^0.14.0
+  flutter_tts: ^4.2.0
+  cloud_firestore: ^5.5.0
   firebase_core: ^3.8.0
+
 
 dev_dependencies:
   flutter_test:

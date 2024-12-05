@@ -14,6 +14,8 @@ import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
 
+import 'MenuTranslationScreen/MenuTranslationScreen.dart';
+
 import 'firebase_options.dart';
 import 'models/check_model_files/essential_model.dart';
 
@@ -21,11 +23,7 @@ import 'models/check_model_files/essential_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
@@ -52,6 +50,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+Future<void> initializeDefault() async {
+  FirebaseApp app = await Firebase.initializeApp();
+  print('Initialized default app $app');
+}
+
 class NoCheckCertificateHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
@@ -74,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const HomeScreenBody(),
     const CheckListScreen(),
-    const ScheduleScreen(),
+    ScheduleScreen(),
     const TravelScreen(),
     const SettingScreen(),
     const MapScreen()
@@ -95,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.all(5.0),
           child: Image.asset('asset/img/appicon.png')
         ),
-        actions: [IconButton(onPressed: null, icon: Icon(Icons.notifications_none,size: 40))],
+        actions: [IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (context) => ImagePickerScreen()));}, icon: Icon(Icons.camera_alt_outlined,size: 40))],
         backgroundColor: Color(0xFFF0F4F6)
       ),
       backgroundColor: Color(0xFFF0F4F6),

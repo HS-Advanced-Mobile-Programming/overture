@@ -48,7 +48,7 @@ class ScheduleModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Schedule> schedulesForDate(DateTime selectedDate) {
+  static List<Schedule> schedulesForDate(DateTime selectedDate, List<Schedule> _schedules) {
     return _schedules.where((schedule) {
       try {
         final scheduleDate = DateFormat('yyyy-MM-dd HH:mm').parse(schedule.time);
