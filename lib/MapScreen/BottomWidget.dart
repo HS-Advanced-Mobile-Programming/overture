@@ -145,7 +145,8 @@ class _BottomWidgetState extends State<BottomWidget> {
   List<DateTime> _getUniqueDates(List<Schedule> schedules) {
     final uniqueDates = <DateTime>{};
     for (var schedule in schedules) {
-      uniqueDates.add(Schedule.dateTime(schedule.time));
+      var dateTime = Schedule.dateTime(schedule.time);
+      uniqueDates.add(DateTime(dateTime.year, dateTime.month, dateTime.day));
     }
     return uniqueDates.toList()..sort();
   }

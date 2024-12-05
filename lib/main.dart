@@ -13,6 +13,8 @@ import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
 import 'package:overture/auth/auth_screen.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
+import 'package:overture/service/FirestoreScheduleService.dart';
+import 'package:overture/service/ScheduleDto.dart';
 import 'package:provider/provider.dart';
 import 'GlobalState/global.dart';
 import 'MapScreen/entity/entity.dart';
@@ -64,6 +66,11 @@ class _MyApp extends State<MyApp> {
     }
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
+
+      // Schedule 초기화
+      List<ScheduleDto> scheduleDtos = await FirestoreScheduleService().getAllSchedules();
+      schedules = scheduleDtos.map((dto) => ScheduleDto.toSchedule(dto)).toList();
+
       // 실시간 위치 스트림 구독
       Geolocator.getPositionStream(
         locationSettings: const LocationSettings(

@@ -2,25 +2,6 @@ import 'dart:math';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-// class Schedule {
-//   final int id;
-//   final String content;
-//   final String title;
-//   final String place;
-//   final DateTime time;
-//   final LatLng latLng;
-//
-//   Schedule({
-//     required this.id,
-//     required this.content,
-//     required this.place,
-//     required this.title,
-//     required this.time,
-//     required this.latLng,
-//   });
-// }
-
-
 class Place {
   final String name;
   final String address;
