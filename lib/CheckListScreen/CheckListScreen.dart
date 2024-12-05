@@ -8,6 +8,7 @@ import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:overture/CheckListScreen/ClothExpansionTileWidget.dart';
 import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/check_model_files/essential_model.dart';
+import 'package:provider/provider.dart';
 import '../models/check_model_files/airportinfo_model.dart';
 import '../service/FirestoreAirportinfoService.dart';
 import 'EssentialCheckListWidget.dart';
@@ -63,6 +64,11 @@ class _CheckListScreenState extends State<CheckListScreen> {
     });
   }
 
+  Future<void> fetchClothesData() async {
+    await Provider.of<ClothesCheckListModel>(context, listen: false)
+        .getAllClothes();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -76,9 +82,9 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableEndDate = _endDate;
     this.editableBoardingTime = _boardingTime;
 
-    clothesCheckListModel.getAllClothes();
-
-    // this.clothingList.add(ClothesCheckListItem(id: "0",itemName: "상의",description: "회의용", quantity: 3, onItemDelete: deleteClothesById, ),);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await fetchClothesData();
+    });
   }
 
 
@@ -153,17 +159,21 @@ class _CheckListScreenState extends State<CheckListScreen> {
             )
           ),
           TravelEssentialsCheckList(),
-          ClothingExpansionTile(
-            clothingList: this.clothesCheckListModel.clothesCheckList,
-            onItemAdded: (ClothesContent newClothe){
-              clothesCheckListModel.addClothe(newClothe);
-            },
-            onItemDelete: (String id){
-              setState(() {
-                clothesCheckListModel.deleteClothes(id);
-              });
-            },
-          )
+          Consumer<ClothesCheckListModel>(builder: (context, clothesCheckListModel,child) {
+            return ClothingExpansionTile(
+              clothingList: clothesCheckListModel.clothesCheckList,
+              onItemAdded: (ClothesContent newClothe){
+                setState(() {
+                  clothesCheckListModel.addClothe(newClothe);
+                });
+              },
+              onItemDelete: (String id){
+                setState(() {
+                  clothesCheckListModel.deleteClothes(id);
+                });
+              },
+            );
+          },)
         ]
       )
     );

@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../models/check_model_files/clothes_model.dart';
+
 class ClothesCheckListItem extends StatefulWidget{
   final String id;
   final String itemName;
   final String description;
   final int quantity;
   bool checked;
-  final Function(String newItem) onItemDelete; //TODO 삭제 안됨
+  final Function(String newItem) onItemDelete;
 
   ClothesCheckListItem({
     required this.id,
@@ -24,6 +26,7 @@ class ClothesCheckListItem extends StatefulWidget{
 }
 
 class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
+  ClothesCheckListModel CCLM = ClothesCheckListModel();
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +37,7 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
           Checkbox(value: widget.checked, onChanged: (value){
             setState(() {
               widget.checked = value ?? false;
+              CCLM.updateChecked(widget.id);
             });
           }),
           Text("${widget.itemName}", style: TextStyle(fontWeight: FontWeight.w800)),

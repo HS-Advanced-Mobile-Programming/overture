@@ -52,7 +52,8 @@ class ClothesCheckListModel extends ChangeNotifier{
     ).toList();
 
     if(fetchedClothes.isNotEmpty){
-      fetchedClothes.map((item) => this.clothesCheckList.add(item));
+      this._clothesCheckList = [];
+      fetchedClothes.forEach((item) => this._clothesCheckList.add(item));
     }
 
     notifyListeners();
@@ -67,5 +68,16 @@ class ClothesCheckListModel extends ChangeNotifier{
 
     this._clothesCheckList.removeWhere((item)=>item.clotheId == id);
     notifyListeners();
+  }
+
+  void updateChecked(String id) async {
+    DocumentSnapshot docSnapshot = await _collectionRef.doc(id).get();
+
+      ClothesContent fetched = ClothesContent.fromJson(
+          docSnapshot.data() as Map<String, dynamic>);
+
+      fetched.isChecked = !fetched.isChecked;
+
+      await _collectionRef.doc(id).update(fetched.toJson());
   }
 }
