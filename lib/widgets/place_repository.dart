@@ -8,7 +8,7 @@ class PlaceRepository {
   final Box placeBox = Hive.box('placesBox');
 
   Future<List<Place>> fetchAndCachePlaces(String query) async {
-    final url = Uri.parse('https://dapi.kakao.com/v2/local/search/keyword.json?page=1&size=2&sort=accuracy&query=$query');
+    final url = Uri.parse('https://dapi.kakao.com/v2/local/search/keyword.json?page=1&size=6&sort=accuracy&query=$query');
     final key = dotenv.get("KAKAO_MAP_KEY");
     final response = await http.get(url, headers: {
       "Authorization": "KakaoAK $key"
