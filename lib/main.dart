@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -7,24 +8,15 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:overture/CheckListScreen/CheckListScreen.dart';
-import 'package:overture/HomeScreen/HomeScreenBody.dart';
-import 'package:overture/MapScreen/MapScreen.dart';
-import 'package:overture/ProfileScreen/SettingScreen.dart';
-import 'package:overture/ScheduleScreen.dart';
-import 'package:overture/TravelScreen.dart';
 import 'package:overture/auth/login_screen.dart';
 import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
 import 'package:overture/auth/auth_screen.dart';
-import 'package:overture/models/place_model_files/place_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
-
-import 'ExplainButton/ExplainButton.dart';
 import 'GlobalState/global.dart';
-import 'HomeScreen/HomeScreen.dart';
 import 'MapScreen/entity/entity.dart';
+import 'models/place_model_files/place_model.dart';
 
 //TODO main icon 움직이게
 
