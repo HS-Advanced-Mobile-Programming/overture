@@ -5,10 +5,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:overture/service/FirestoreScheduleService.dart';
+import 'package:overture/service/ScheduleDto.dart';
+import 'package:overture/widgets/schedule_edit_form.dart';
+import 'package:provider/provider.dart';
+import 'package:overture/models/schedule_model_files/schedule_model.dart'
+    as OtherSchedule;
 import '../SearchScreen/PlaceDetailsModal.dart';
 import '../SearchScreen/SearchScreen.dart';
-import 'TopWidget.dart';
 import 'BottomWidget.dart';
+import 'TopWidget.dart';
 import 'entity/entity.dart';
 
 List<Schedule> schedules = [
@@ -41,6 +48,7 @@ class _MapScreenState extends State<MapScreen> {
   final Set<Marker> _markers = {}; // 마커 리스트 추가
   final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
   final LatLng _center = const LatLng(37.63695556, 127.0277194);
+  final FirestoreScheduleService service = FirestoreScheduleService();
 
   @override
   void initState() {
@@ -121,9 +129,78 @@ class _MapScreenState extends State<MapScreen> {
       icon: schedule.icon ?? BitmapDescriptor.defaultMarker, // 각 Schedule의 아이콘 사용
       infoWindow: InfoWindow(
         title: schedule.title,
-        onTap: () {}, // TODO: 정보 수정
+        onTap: () {
+          final formattedSchedule = OtherSchedule.Schedule(
+              id: schedule.scheduleId.toString(),
+              title: schedule.title,
+              content: '',
+              time: DateFormat('yyyy-MM-dd HH:mm').format(schedule.time),
+              place: '장소를 입력하세요' // [HS-JNYLee]: schedule에 place 속성 없어서 빈 값 정의
+              );
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (BuildContext context) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(height: 50, color: Colors.transparent),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context)
+                            .viewInsets
+                            .bottom, // 키보드 높이만큼 패딩 추가
+                      ),
+                      child: ScheduleEditForm(
+                        selectedDate: schedule.time,
+                        schedule: formattedSchedule,
+                        onSubmit: (newSchedule) {
+                          final scheduleModel =
+                              Provider.of<OtherSchedule.ScheduleModel>(
+                                  context,
+                                  listen: false);
+                          _controller.hideMarkerInfoWindow(MarkerId(schedule.scheduleId.toString()));
+                          final indexS = schedules.indexWhere((schedule) =>
+                          schedule.scheduleId.toString() ==
+                              newSchedule.id);
+                          if (indexS != -1) {
+                            setState(() {
+                              schedules[indexS]
+                              = Schedule(
+                                  scheduleId: int.parse(newSchedule.id),
+                                  userId: 1, title: newSchedule.title,
+                                  time: newSchedule.toDateTime(),
+                                  latLng: schedules[indexS].latLng, icon: schedules[indexS].icon); // 새로운 객체로 교체
+                            });
+                          }
+                          service.updateSchedule(
+                              newSchedule.id,
+                              ScheduleDto.toScheduleDto(
+                                  newSchedule, '1'));
+                          scheduleModel.editSchedule(newSchedule);
+                          Navigator.pop(context);
+                        },
+                        onDelete: (newSchedule) {
+                          setState(() {
+                            schedules.removeWhere((schedule) =>
+                                schedule.scheduleId.toString() ==
+                                newSchedule.id);
+                            service.deleteSchedule(newSchedule.id);
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }, // TODO: 정보 수정
       ),
-    ))
+            ))
         .toSet();
   }
 

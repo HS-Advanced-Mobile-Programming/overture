@@ -17,8 +17,12 @@ class Schedule {
     required this.time,
     required this.place,
     this.x,
-    this.y
+    this.y,
   });
+
+  DateTime toDateTime() {
+    return DateFormat('yyyy-MM-dd HH:mm').parse(time);
+  }
 }
 
 class ScheduleModel extends ChangeNotifier {
