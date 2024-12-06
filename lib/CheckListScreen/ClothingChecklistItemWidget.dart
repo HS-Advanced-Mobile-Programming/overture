@@ -11,6 +11,7 @@ class ClothesCheckListItem extends StatefulWidget {
   int quantity;
   bool checked;
   final Function(String newItem) onItemDelete;
+  final Function(ClothesContent tmp) onDeleteItemCancel;
 
   ClothesCheckListItem({
     required this.id,
@@ -19,6 +20,7 @@ class ClothesCheckListItem extends StatefulWidget {
     required this.quantity,
     required this.onItemDelete,
     required this.checked,
+    required this.onDeleteItemCancel,
     Key? key,
   }) : super(key: key);
 
@@ -28,7 +30,6 @@ class ClothesCheckListItem extends StatefulWidget {
 
 class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
   ClothesCheckListModel CCLM = ClothesCheckListModel();
-
 
   @override
   void initState() {
@@ -46,13 +47,37 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                showEditDialog(); // 수정 버튼 클릭 시 동작
+                showEditDialog();
               },
               child: Text("수정"),
             ),
             TextButton(
               onPressed: () {
-                widget.onItemDelete(widget.id); // 삭제 동작 실행
+                // 삭제 동작 실행
+                widget.onItemDelete(widget.id);
+
+                ClothesContent tmp = ClothesContent(
+                  clotheId : widget.id,
+                  itemName : widget.itemName,
+                  description : widget.description,
+                  quantity: widget.quantity,
+                  isChecked : widget.checked
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('삭제되었습니다.'),
+                    duration: Duration(seconds: 2),
+                    action: SnackBarAction(
+                      label: '취소',
+                      onPressed: () {
+                        CCLM.addClothe(tmp);
+                        widget.onDeleteItemCancel(tmp);
+                      },
+                    ),
+                  ),
+                );
+
                 Navigator.pop(context);
               },
               child: Text("삭제"),
@@ -71,7 +96,6 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // Dialog가 열려있는 상태 에서도 UI가 업데이트 되도록 하기 위함
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setStateDialog) {
             return AlertDialog(
@@ -170,7 +194,7 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
           padding: EdgeInsets.only(right: 32, left: 32, bottom: 16),
           child: Row(children: [
             Text(widget.description),
-          ]),
+          ]), // CheckList Item 설명 부분
         ),
       ],
     );

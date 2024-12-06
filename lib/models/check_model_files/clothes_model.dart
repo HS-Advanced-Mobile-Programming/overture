@@ -82,7 +82,7 @@ class ClothesCheckListModel extends ChangeNotifier{
   }
 
   Future<void> updateClothe(ClothesContent editedClothe) async {
-    print("Apple : ${editedClothe.quantity}");
+    // print("Apple id : ${editedClothe.clotheId}");
     await _collectionRef.doc(editedClothe.clotheId).update(editedClothe.toJson());
   }
 }

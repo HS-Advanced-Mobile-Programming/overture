@@ -35,6 +35,11 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
             quantity: item.quantity,
             checked : item.isChecked,
             onItemDelete: widget.onItemDelete,
+            onDeleteItemCancel : (ClothesContent tmp){
+              setState(() {
+                widget.clothingList.add(tmp);
+              });
+            }
           )).toList()),
         Padding(
           padding: EdgeInsets.only(right: 16, left: 16, bottom: 16),
