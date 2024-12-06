@@ -28,6 +28,7 @@ class _ExplainButtonState extends State<ExplainButton> {
     // innerPlace 변경을 감지
     innerPlace.addListener(() {
       if (innerPlace.value != null) {
+        print("변경을 탐지: 버튼 나와야 됨");
         _fetchSummary(); // 설명 데이터를 가져옴
         setState(() {
           _isVisible = true;
@@ -106,7 +107,7 @@ class _ExplainButtonState extends State<ExplainButton> {
   }
 
   Future<String> _summarizeReviews() async {
-    print(innerPlace.value);
+    print("_summarizeReviews(): ${innerPlace.value}");
     final String _openAiKey = dotenv.get("OPENAI_API_KEY");
 
     const endpoint = 'https://api.openai.com/v1/chat/completions';

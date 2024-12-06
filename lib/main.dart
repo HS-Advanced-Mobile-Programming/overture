@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:overture/ExplainButton/ExplainButton.dart';
 import 'package:overture/auth/login_screen.dart';
 import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
@@ -82,6 +83,7 @@ class _MyApp extends State<MyApp> {
         print("현재 위치: $myPos");
 
         var today = DateTime.now();
+        print("오늘 날짜: ${today}");
 
         schedules.forEach((schedule) {
           // 스케줄 날짜만 추출
@@ -94,7 +96,8 @@ class _MyApp extends State<MyApp> {
               && scheduleDate.day == today.day
               && calculateDistance(LatLng(double.parse(schedule.x!), double.parse(schedule.y!)), myPos) <= 5
           ) {
-              innerPlace.value = schedule.place;
+            print("innerPlace 일정 주입: ${schedule.place}");
+            innerPlace.value = schedule.place;
           }
         });
       });
@@ -110,7 +113,12 @@ class _MyApp extends State<MyApp> {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => Stack(
+            children: [
+              const HomeScreen(),
+              ExplainButton(tts: tts)
+            ],
+        ),
         '/signup': (context) => SignUpScreen(),
         '/login': (context) => LoginScreen(),
         '/': (context) => MainScreen()

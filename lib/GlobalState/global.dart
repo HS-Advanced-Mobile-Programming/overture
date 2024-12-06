@@ -2,7 +2,6 @@ library global;
 
 import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:overture/service/FirestoreScheduleService.dart';
 import '../models/schedule_model_files/schedule_model.dart';
 
 // Schedule 리스트
