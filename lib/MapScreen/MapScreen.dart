@@ -69,7 +69,81 @@ class _MapScreenState extends State<MapScreen> {
         icon: schedule.icon,
         infoWindow: InfoWindow(
           title: schedule.title,
-          onTap: () {}, // TODO: 정보 수정
+          onTap: () {
+            final formattedSchedule = OtherSchedule.Schedule(
+                id: schedule.id.toString(),
+                title: schedule.title,
+                content: '',
+                time: schedule.time,
+                place: '장소를 입력하세요' // [HS-JNYLee]: schedule에 place 속성 없어서 빈 값 정의
+            );
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (BuildContext context) {
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(height: 50, color: Colors.transparent),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context)
+                              .viewInsets
+                              .bottom, // 키보드 높이만큼 패딩 추가
+                        ),
+                        child: ScheduleEditForm(
+                          selectedDate: Schedule.dateTime(schedule.time),
+                          schedule: formattedSchedule,
+                          onSubmit: (newSchedule) {
+                            final scheduleModel =
+                            Provider.of<OtherSchedule.ScheduleModel>(
+                                context,
+                                listen: false);
+                            _controller.hideMarkerInfoWindow(MarkerId(schedule.id.toString()));
+                            final indexS = globalSchedules.indexWhere((schedule) =>
+                            schedule.id.toString() ==
+                                newSchedule.id);
+                            if (indexS != -1) {
+                              setState(() {
+                                globalSchedules[indexS]
+                                = ScheduleAndMarker(
+                                    id: newSchedule.id,
+                                    title: newSchedule.title,
+                                    time: newSchedule.time,
+                                    x: globalSchedules[indexS].x,
+                                    y: globalSchedules[indexS].y,
+                                    icon: globalSchedules[indexS].icon,
+                                    content: newSchedule.content,
+                                    place: newSchedule.place
+                                ); // 새로운 객체로 교체
+                              });
+                            }
+                            FirestoreScheduleService().updateSchedule(
+                                newSchedule.id,
+                                ScheduleDto.toScheduleDto(
+                                    newSchedule, '1'));
+                            scheduleModel.editSchedule(newSchedule);
+                            Navigator.pop(context);
+                          },
+                          onDelete: (newSchedule) {
+                            setState(() {
+                              globalSchedules.removeWhere((schedule) =>
+                              schedule.id.toString() ==
+                                  newSchedule.id);
+                              FirestoreScheduleService().deleteSchedule(newSchedule.id);
+                            });
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
         ),
       );
     }).toSet();
