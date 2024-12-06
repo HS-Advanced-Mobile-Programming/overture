@@ -6,7 +6,6 @@ import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/MenuTranslationScreen/MenuTranslationScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
-import 'package:overture/TravelScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

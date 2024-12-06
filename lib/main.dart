@@ -13,13 +13,8 @@ import 'package:overture/models/place_model_files/place_model.dart';
 import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
-
-import 'MenuTranslationScreen/MenuTranslationScreen.dart';
-
-import 'firebase_options.dart';
 import 'models/check_model_files/essential_model.dart';
 
-//TODO main icon 움직이게
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
