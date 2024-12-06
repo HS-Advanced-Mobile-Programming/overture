@@ -76,8 +76,8 @@ class _ScheduleFormState extends State<ScheduleForm> {
             onPlaceSelected: (Place selectedPlace) {
               setState(() {
                 _placeController.text = selectedPlace.placeName;
-                locationCoordinateX = selectedPlace.x;
-                locationCoordinateY = selectedPlace.y;
+                locationCoordinateX = selectedPlace.y;
+                locationCoordinateY = selectedPlace.x;
               });
             },
           ),
