@@ -38,34 +38,6 @@ class _SettingScreenState extends State<SettingScreen> {
               );
             },
           ),
-          const SectionTitle(title: "알림"),
-          SwitchListTile(
-            title: const Text("여행 알림"),
-            value: isTravelNotificationOn,
-            activeColor: const Color(0xFF3C91FF),
-            onChanged: (bool value) {
-              setState(() {
-                isTravelNotificationOn = value; // 상태 업데이트
-              });
-            },
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0), // 양쪽에 패딩 추가
-            child: Divider(
-              color: Colors.grey, // Divider 색상
-              thickness: 1.0, // Divider 두께
-            ),
-          ),
-          SwitchListTile(
-            title: const Text("앱 푸시 알림"),
-            value: isAppPushNotificationOn,
-            activeColor: const Color(0xFF3C91FF),
-            onChanged: (bool value) {
-              setState(() {
-                isAppPushNotificationOn = value; // 상태 업데이트
-              });
-            },
-          ),
           const SectionTitle(title: "고객지원"),
           const ListTile(
             title: Text("버전정보"),
