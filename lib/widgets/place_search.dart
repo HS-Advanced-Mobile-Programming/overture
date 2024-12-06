@@ -15,12 +15,13 @@ class PlaceSearch extends StatefulWidget {
 class _PlaceSearchState extends State<PlaceSearch> {
   final PlaceRepository repository = PlaceRepository();
   List<Place> places = [];
-
+  List<Place> loadPlace = [];
   void fetchData(String query) async {
     try {
       final results = await repository.fetchAndCachePlaces(query);
       setState(() {
         places = results;
+        loadPlace.addAll(results);
       });
       for (Place place in places) {
         print("${place.placeName} ${place.addressName}");
@@ -32,7 +33,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
 
   void loadCachedData() {
     setState(() {
-      places = repository.getCachedPlaces();
+      loadPlace = repository.getCachedPlaces();
     });
   }
 
@@ -46,7 +47,15 @@ class _PlaceSearchState extends State<PlaceSearch> {
       "한성대학교는 서울 성북구와 종로구에 위치한 사립 대학교로, 1972년에 설립되었습니다. 주요 학부로는 인문대학, 사회과학대학, 예술대학, 공과대학 등이 있으며 다양한 학부와 전공을 제공합니다. 학부와 석사, 박사 과정에서 공학, 경영학, 컴퓨터 과학, 미술, 패션 디자인 등 다양한 학문을 다룹니다";
 
   void _performSearch(String value) {
-    fetchData(value);
+    final filterPlace = loadPlace.where((place) => place.placeName.contains(value)).toList();
+    if(filterPlace.isNotEmpty) {
+      setState(() {
+        places = filterPlace;
+      });
+    } else {
+      print("Empty Cached: $value");
+      fetchData(value);
+    }
   }
 
   @override
