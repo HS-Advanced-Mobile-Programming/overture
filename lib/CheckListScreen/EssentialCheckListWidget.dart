@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 class EssentialCheckListItem extends StatefulWidget {
   final String itemName;
   final String description;
+  bool checked;
 
   EssentialCheckListItem({
     required this.itemName,
     required this.description,
+    required this.checked,
     Key? key,
   }) : super(key: key);
 
@@ -17,12 +19,6 @@ class EssentialCheckListItem extends StatefulWidget {
 }
 
 class _EssentialCheckListItemState extends State<EssentialCheckListItem> {
-  Map<String, String> clickableWords = {
-    "무비자": "비자가 없음.",
-    "단기체류": "객지에 가서 단기간 동안 머물러 있음.",
-    "장기체류": "객지에 가서 장기간 동안 머물러 있음.",
-  };
-  bool checked = false;
 
   // [참조] https://musubi-life.tistory.com/29
   // Tooltip을 띄우는 함수
@@ -61,7 +57,7 @@ class _EssentialCheckListItemState extends State<EssentialCheckListItem> {
   @override
   Widget build(BuildContext context) {
     Map<String, String> clickableWords = {
-      "무비자": "비자sfdgggggggggfdgsfdgsfdgdgdgfgdfgsdgf가 없음.",
+      "무비자": "비자가 없음.",
       "단기체류": "객지에 가서 단기간 동안 머물러 있음.",
       "장기체류": "객지에 가서 장기간 동안 머물러 있음.",
     };
@@ -95,10 +91,10 @@ class _EssentialCheckListItemState extends State<EssentialCheckListItem> {
     return ExpansionTile(
       title: Row(
         children: [
-          Checkbox(value: this.checked, onChanged: (value){
+          Checkbox(value: widget.checked, onChanged: (value){
             setState(() {
               // TODO 여기서 파베로 요청
-              this.checked = value ?? false;
+              widget.checked = value ?? false;
             });
           }),
           Text("${widget.itemName}", style: TextStyle(fontWeight: FontWeight.w800)),

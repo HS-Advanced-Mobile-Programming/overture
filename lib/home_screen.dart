@@ -6,7 +6,6 @@ import 'package:overture/MapScreen/MapScreen.dart';
 import 'package:overture/MenuTranslationScreen/MenuTranslationScreen.dart';
 import 'package:overture/ProfileScreen/SettingScreen.dart';
 import 'package:overture/ScheduleScreen.dart';
-import 'package:overture/TravelScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const HomeScreenBody(),
     const CheckListScreen(),
     ScheduleScreen(),
-    const TravelScreen(),
     const SettingScreen(),
     const MapScreen()
   ];
@@ -62,10 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: '내 일정',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.airplane_ticket),
-            label: '나의 여행',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

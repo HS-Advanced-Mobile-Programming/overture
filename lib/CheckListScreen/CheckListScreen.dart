@@ -6,8 +6,11 @@ import 'package:expandable_widgets/expandable_widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:overture/CheckListScreen/ClothExpansionTileWidget.dart';
-
-import 'ClothingChecklistWidget.dart';
+import 'package:overture/models/check_model_files/clothes_model.dart';
+import 'package:overture/models/check_model_files/essential_model.dart';
+import 'package:provider/provider.dart';
+import '../models/check_model_files/airportinfo_model.dart';
+import '../service/FirestoreAirportinfoService.dart';
 import 'EssentialCheckListWidget.dart';
 
 
@@ -19,8 +22,6 @@ class CheckListScreen extends StatefulWidget {
 }
 
 class _CheckListScreenState extends State<CheckListScreen> {
-
-  //TODO DB에서 읽어옴 -> 데이터 없을 때도 출력 필요
 
   String _startDate = DateFormat('yyyy.MM.dd').format(DateTime.now());
   String _endDate = DateFormat('yyyy.MM.dd').format(DateTime.now());
@@ -35,24 +36,44 @@ class _CheckListScreenState extends State<CheckListScreen> {
 
   String _airline = "대한항공"; //항공사
   String _flightName = "KE901"; //항공편
-  String _terminalNum="T2"; // 터미널
+  String _terminalNum = "T2"; // 터미널
   String _portNum = "253";// 탑승구
   String _boardingTime = DateFormat('HH:mm').format(DateTime.now());
 
   late String editableBoardingTime;
-  List<Widget> TravelEssentialsList = [
-    EssentialCheckListItem(itemName: "비자발급",description:  "프랑스 여행 시 단기체류(90일 이하)의 경우 무비자 입국 가능 장기체류의 경우 별도의 비자신청이 필요합니다.")
-  ];
 
-  List<Widget> ClothingList = [
+  EssentialCheckListModel essentialCheckListModel = EssentialCheckListModel();
 
-  ];
+  ClothesCheckListModel clothesCheckListModel = ClothesCheckListModel();
+
+  FirestoreAirportinfoService airportinfoService = FirestoreAirportinfoService();
+
+  Future<void> getAllAirportInfo() async {
+    List<AirportInfoModel> fetchedAirportInfo = await airportinfoService.getAllAirportInfo();
+
+    setState(() {
+      _startDate = fetchedAirportInfo[0].start_date;
+      _endDate = fetchedAirportInfo[0].end_date;
+      _fromAirport = fetchedAirportInfo[0].from_airport;
+      _toAirport = fetchedAirportInfo[0].to_airport;
+      _airline = fetchedAirportInfo[0].air_line;
+      _flightName = fetchedAirportInfo[0].flight_name;
+      _terminalNum = fetchedAirportInfo[0].terminal_num;
+      _portNum = fetchedAirportInfo[0].port_num;
+      _boardingTime = fetchedAirportInfo[0].boarding_time;
+    });
+  }
+
+  Future<void> fetchClothesData() async {
+    await Provider.of<ClothesCheckListModel>(context, listen: false)
+        .getAllClothes();
+  }
 
   @override
   void initState() {
     super.initState();
-    //TODO 파베에서 정보 읽어 오기
-    // 기반으로 TravelEssentialsList 초기화
+
+    getAllAirportInfo();
 
     this._totalDate = (DateFormat("yyyy.MM.dd").parse(_endDate)
         .difference(DateFormat("yyyy.MM.dd").parse(_startDate))
@@ -61,7 +82,9 @@ class _CheckListScreenState extends State<CheckListScreen> {
     this.editableEndDate = _endDate;
     this.editableBoardingTime = _boardingTime;
 
-    this.ClothingList.add(ClothesCheckListItem(itemName: "상의",description: "회의용", quantity: 3, ),);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await fetchClothesData();
+    });
   }
 
 
@@ -136,18 +159,21 @@ class _CheckListScreenState extends State<CheckListScreen> {
             )
           ),
           TravelEssentialsCheckList(),
-          ClothingExpansionTile(clothingList: this.ClothingList,
-            onItemAdded: (newItem) {
-              setState(() {
-                ClothingList.add(newItem);
-              });
-            },
-            onItemDelete: (target){
-              setState(() {
-                ClothingList.remove(target);
-              });
-            },
-          )
+          Consumer<ClothesCheckListModel>(builder: (context, clothesCheckListModel,child) {
+            return ClothingExpansionTile(
+              clothingList: clothesCheckListModel.clothesCheckList,
+              onItemAdded: (ClothesContent newClothe){
+                setState(() {
+                  clothesCheckListModel.addClothe(newClothe);
+                });
+              },
+              onItemDelete: (String id){
+                setState(() {
+                  clothesCheckListModel.deleteClothes(id);
+                });
+              },
+            );
+          },)
         ]
       )
     );
@@ -306,10 +332,7 @@ class _CheckListScreenState extends State<CheckListScreen> {
                 ],
               ),
               TextButton(
-                onPressed: (){
-                  //TODO firebase에 저장 필요
-                  //EX : _boardingTimeController.text로 값 가져오기
-                  //지금은 UI 반영만 된 상태
+                onPressed: () {
 
                   String newStartDate = editableStartDate;
                   String newEndDate = editableEndDate;
@@ -320,6 +343,18 @@ class _CheckListScreenState extends State<CheckListScreen> {
                   String newTerminalNum = _terminalNumController.text;
                   String newPortNum = _portNumController.text;
                   String newBoardingTime = editableBoardingTime;
+
+                  airportinfoService.updateAirportInfo(AirportInfoModel(
+                      air_line: newAirLine,
+                      boarding_time: newBoardingTime,
+                      end_date: newEndDate,
+                      flight_name: newFlightName,
+                      from_airport: newFromAirport,
+                      port_num: newPortNum,
+                      start_date: newStartDate,
+                      terminal_num: newTerminalNum,
+                      to_airport:newToAirport
+                  ));
 
                   setState(() {
                     this._startDate = newStartDate;
@@ -354,9 +389,13 @@ class _CheckListScreenState extends State<CheckListScreen> {
         collapsedBackgroundColor: Colors.white,
         backgroundColor: Colors.white,
         title: Text("🎒 여행 필수 품목"),
-        children: [
-          Column(children: this.TravelEssentialsList),
-        ]
+        children: essentialCheckListModel.essentialCheckList
+            .map((item) => EssentialCheckListItem(
+              itemName: item.itemName,
+              description: item.description,
+              checked: item.isChecked,
+          )
+        ).toList(),
       ),
     );
   }

@@ -6,6 +6,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../GlobalState/global.dart';
+import 'package:intl/intl.dart';
+import 'package:overture/service/FirestoreScheduleService.dart';
+import 'package:overture/service/ScheduleDto.dart';
+import 'package:overture/widgets/schedule_edit_form.dart';
+import 'package:provider/provider.dart';
+import 'package:overture/models/schedule_model_files/schedule_model.dart'
+    as OtherSchedule;
 import '../SearchScreen/PlaceDetailsModal.dart';
 import '../SearchScreen/SearchScreen.dart';
 import '../models/schedule_model_files/schedule_model.dart';
@@ -31,6 +38,7 @@ class _MapScreenState extends State<MapScreen> {
   Map<String, dynamic> _placeDetails = {};
   DateTime? selectedDate; // 선택된 날짜
   final Set<Marker> _markers = {}; // 마커 리스트 추가
+  final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
   final LatLng _center = const LatLng(37.63695556, 127.0277194);
 
   @override

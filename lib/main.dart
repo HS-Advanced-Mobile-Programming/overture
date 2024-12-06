@@ -9,10 +9,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:overture/ExplainButton/ExplainButton.dart';
+import 'package:overture/auth/auth_screen.dart';
 import 'package:overture/auth/login_screen.dart';
 import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
 import 'package:overture/auth/auth_screen.dart';
+import 'package:overture/models/place_model_files/place_model.dart';
+import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:overture/service/FirestoreScheduleService.dart';
 import 'package:overture/service/ScheduleDto.dart';
@@ -22,20 +25,24 @@ import 'MapScreen/entity/entity.dart';
 import 'models/place_model_files/place_model.dart';
 
 //TODO main icon 움직이게
+import 'models/check_model_files/essential_model.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  Hive.registerAdapter(PlaceAdapter());
   await Hive.openBox('placesBox');
   await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ko_KR', null); // 로케일 데이터 초기화
-  Hive.registerAdapter(PlaceAdapter());
   HttpOverrides.global = NoCheckCertificateHttpOverrides();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ScheduleModel()),
+        ChangeNotifierProvider(create: (_) => EssentialCheckListModel()),
+        ChangeNotifierProvider(create: (_) => ClothesCheckListModel())
       ],
       child: const MyApp(),
     ),

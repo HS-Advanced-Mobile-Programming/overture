@@ -4,14 +4,19 @@ class ScheduleBottomSheet extends StatelessWidget {
   final String title;
   final Widget? child;
   final Widget? button;
+  final bool isTwoButton;
   final Function()? buttonOnPressed;
+  final Function()? buttonOnPressedForDelete;
 
   const ScheduleBottomSheet(
       {Key? key,
       required this.title,
       this.child,
       this.button,
-      this.buttonOnPressed})
+      this.buttonOnPressed,
+      this.buttonOnPressedForDelete,
+        this.isTwoButton = false
+      })
       : super(key: key);
 
   @override
@@ -51,6 +56,7 @@ class ScheduleBottomSheet extends StatelessWidget {
             ),
           ),
         ),
+        !isTwoButton ?
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             fixedSize: const Size(700, 50),
@@ -63,7 +69,43 @@ class ScheduleBottomSheet extends StatelessWidget {
           ),
           onPressed: buttonOnPressed,
           child: button,
-        ),
+        ) :
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+           ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                fixedSize: const Size(205, 50),
+                minimumSize: Size.zero,
+                padding: EdgeInsets.zero,
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0.0),
+                ),
+              ),
+              onPressed: buttonOnPressedForDelete,
+              child: Text(
+                '삭제',
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                fixedSize: const Size(205, 50),
+                minimumSize: Size.zero,
+                padding: EdgeInsets.zero,
+                backgroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0.0),
+                ),
+              ),
+              onPressed: buttonOnPressed,
+              child: button,
+            ),
+          ],
+        )
+
       ],
     );
   }
