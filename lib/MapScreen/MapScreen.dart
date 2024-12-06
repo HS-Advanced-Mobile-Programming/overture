@@ -30,6 +30,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  bool _isLoading = true;
+
   late GoogleMapController _controller;
   bool _myLocationEnabled = false;
   Place? _place;
@@ -44,9 +46,19 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    // preloadBitmapDescriptors().then((_) {
-    //   setState(() {}); // 로드 완료 후 상태 갱신
-    // });
+    _initializeMap();
+  }
+
+  Future<void> _initializeMap() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await loadSchedules(); // 마커 데이터 및 아이콘 로드
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Set<Marker> getMarkers() {
@@ -193,14 +205,14 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    loadSchedules();
-
-    return Column(
+    return _isLoading
+        ? Center(child: CircularProgressIndicator()) // 로딩 중
+        : Column(
       children: [
         TopSheet(onSearchMarker: (place) {
           _place = place;
           _updatePlaceMarker(place); // 새 마커 추가
-                }),
+        }),
         Expanded(
           child: Stack(
             children: [
@@ -222,10 +234,10 @@ class _MapScreenState extends State<MapScreen> {
                   onPressed: _getCurrentLocation,
                   foregroundColor: Colors.black,
                   backgroundColor: Color(0xFFF0F4F6),
-                  elevation: 8, // 그림자 크기
+                  elevation: 8,
                   child: Icon(Icons.my_location),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50), // 버튼 모서리 둥글기
+                    borderRadius: BorderRadius.circular(50),
                   ),
                 ),
               ),
@@ -243,6 +255,7 @@ class _MapScreenState extends State<MapScreen> {
       ],
     );
   }
+
 
   // 상준's 작품
   void _fetchReviewsAndDetails(String placeId) async {
