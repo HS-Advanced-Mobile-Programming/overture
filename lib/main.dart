@@ -70,7 +70,7 @@ class _MyApp extends State<MyApp> {
 
       // Schedule 초기화
       List<ScheduleDto> scheduleDtos = await FirestoreScheduleService().getAllSchedules();
-      schedules = scheduleDtos.map((dto) => ScheduleDto.toSchedule(dto)).toList();
+      globalSchedules = scheduleDtos.map((dto) => ScheduleDto.toSchedule(dto)).toList();
 
       // 실시간 위치 스트림 구독
       Geolocator.getPositionStream(
@@ -85,7 +85,7 @@ class _MyApp extends State<MyApp> {
         var today = DateTime.now();
         print("오늘 날짜: ${today}");
 
-        schedules.forEach((schedule) {
+        globalSchedules.forEach((schedule) {
           // 스케줄 날짜만 추출
           var scheduleTime = Schedule.dateTime(schedule.time);
           final scheduleDate = DateTime(scheduleTime.year, scheduleTime.month, scheduleTime.day);

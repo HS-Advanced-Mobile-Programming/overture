@@ -9,6 +9,8 @@ import '../GlobalState/global.dart';
 import '../SearchScreen/PlaceDetailsModal.dart';
 import '../SearchScreen/SearchScreen.dart';
 import '../models/schedule_model_files/schedule_model.dart';
+import '../service/FirestoreScheduleService.dart';
+import '../service/ScheduleDto.dart';
 import 'TopWidget.dart';
 import 'BottomWidget.dart';
 import 'entity/entity.dart';
@@ -38,6 +40,8 @@ class _MapScreenState extends State<MapScreen> {
     preloadBitmapDescriptors().then((_) {
       setState(() {}); // 로드 완료 후 상태 갱신
     });
+
+    loadSchedules();
   }
 
   static const List<String> colors = [
@@ -51,10 +55,10 @@ class _MapScreenState extends State<MapScreen> {
     int count = 1;
     int colorCount = 0;
 
-    schedules.sort((a, b) => a.time.compareTo(b.time));
+    globalSchedules.sort((a, b) => a.time.compareTo(b.time));
 
-    for (int i = 0; i < schedules.length; i++) {
-      if (i > 0 && Schedule.dateTime(schedules[i].time).day != Schedule.dateTime(schedules[i-1].time).day) {
+    for (int i = 0; i < globalSchedules.length; i++) {
+      if (i > 0 && Schedule.dateTime(globalSchedules[i].time).day != Schedule.dateTime(globalSchedules[i-1].time).day) {
         count = 1; // 날짜가 바뀌면 count 초기화
         colorCount++;
       }
@@ -71,8 +75,8 @@ class _MapScreenState extends State<MapScreen> {
 
   Set<Marker> getMarkers() {
     final filteredSchedules = selectedDate == null
-        ? schedules
-        : schedules.where((schedule) {
+        ? globalSchedules
+        : globalSchedules.where((schedule) {
       var scheduleTime = Schedule.dateTime(schedule.time);
       return scheduleTime.year == selectedDate!.year &&
           scheduleTime.month == selectedDate!.month &&
@@ -177,7 +181,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
         BottomWidget(
-          datas: schedules,
+          datas: globalSchedules,
           onDateSelected: (DateTime? date) {
             setState(() {
               selectedDate = date;

@@ -3,9 +3,11 @@ library global;
 import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/schedule_model_files/schedule_model.dart';
+import '../service/FirestoreScheduleService.dart';
+import '../service/ScheduleDto.dart';
 
 // Schedule 리스트
-List<Schedule> schedules = [
+List<Schedule> globalSchedules = [
   Schedule(id: "1", title: "출국", content: "인천공항에서 출국 준비", time: "2024-12-06 01:00:00", place: "인천공항", x: "37.63695556", y: "127.0277194"),
   Schedule(id: "2", title: "호텔 체크인", content: "예약한 호텔에 체크인", time: "2024-12-06 03:00:00", place: "강남 호텔", x: "37.68695556", y: "127.0277194"),
   Schedule(id: "3", title: "한성대 방문", content: "한성대학교에 방문했습니다.", time: "2024-12-06 06:00:00", place: "한성대학교", x: "37.5828", y: "127.0106"),
@@ -21,5 +23,11 @@ List<Schedule> schedules = [
 
 // 전역 상태 관리 변수
 ValueNotifier<String?> innerPlace = ValueNotifier<String?>(null);
+
+Future<void> loadSchedules() async {
+  // Schedule 초기화
+  List<ScheduleDto> scheduleDtos = await FirestoreScheduleService().getAllSchedules();
+  globalSchedules = scheduleDtos.map((dto) => ScheduleDto.toSchedule(dto)).toList();
+}
 
 LatLng myPos = LatLng(0,0);
