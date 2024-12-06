@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 
@@ -66,6 +68,19 @@ class ScheduleDto {
 
   static Schedule toSchedule(ScheduleDto scheduleDto) {
     return Schedule(
+      id: scheduleDto.scheduleId,
+      title: scheduleDto.title,
+      content: scheduleDto.content,
+      time: scheduleDto.time,
+      place: scheduleDto.place,
+      x: scheduleDto.x ?? '',
+      y: scheduleDto.y ?? '',
+    );
+  }
+
+  static ScheduleAndMarker toScheduleAndMarker(ScheduleDto scheduleDto, BitmapDescriptor icon) {
+    return ScheduleAndMarker(
+      icon: icon,
       id: scheduleDto.scheduleId,
       title: scheduleDto.title,
       content: scheduleDto.content,

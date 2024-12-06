@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import '../GlobalState/global.dart';
 import 'package:intl/intl.dart';
 import 'package:overture/service/FirestoreScheduleService.dart';
 import 'package:overture/service/ScheduleDto.dart';
@@ -14,21 +15,12 @@ import 'package:overture/models/schedule_model_files/schedule_model.dart'
     as OtherSchedule;
 import '../SearchScreen/PlaceDetailsModal.dart';
 import '../SearchScreen/SearchScreen.dart';
-import 'BottomWidget.dart';
+import '../models/schedule_model_files/schedule_model.dart';
+import '../service/FirestoreScheduleService.dart';
+import '../service/ScheduleDto.dart';
 import 'TopWidget.dart';
+import 'BottomWidget.dart';
 import 'entity/entity.dart';
-
-List<Schedule> schedules = [
-  Schedule(scheduleId: 1, userId: 1, title: "출국", time: DateTime(2024, 12, 1, 1, 0, 0), latLng: LatLng(37.63695556, 127.0277194)),
-  Schedule(scheduleId: 2, userId: 1, title: "호텔 체크인", time: DateTime(2024, 12, 1, 3, 0, 0), latLng: LatLng(37.68695556, 127.0277194)),
-  Schedule(scheduleId: 3, userId: 1, title: "파이브가이즈에서 식사", time: DateTime(2024, 12, 1, 6, 0, 0), latLng: LatLng(37.73695556, 127.0277194)),
-  Schedule(scheduleId: 4, userId: 1, title: "기상", time: DateTime(2024, 12, 2, 1, 0, 0), latLng: LatLng(37.78695556, 127.0777194)),
-  Schedule(scheduleId: 5, userId: 1, title: "셰르파 미팅", time: DateTime(2024, 12, 2, 3, 0, 0), latLng: LatLng(37.83695556, 127.0777194)),
-  Schedule(scheduleId: 6, userId: 1, title: "에베레스트 산 등산", time: DateTime(2024, 12, 2, 6, 0, 0), latLng: LatLng(37.88695556, 127.0777194)),
-  Schedule(scheduleId: 7, userId: 1, title: "쇼핑하기", time: DateTime(2024, 12, 3, 1, 0, 0), latLng: LatLng(37.93695556, 127.1277194)),
-  Schedule(scheduleId: 8, userId: 1, title: "호텔 체크 아웃", time: DateTime(2024, 12, 3, 3, 0, 0), latLng: LatLng(37.98695556, 127.1277194)),
-  Schedule(scheduleId: 9, userId: 1, title: "귀국", time: DateTime(2024, 12, 3, 6, 0, 0), latLng: LatLng(38.03695556, 127.1277194)),
-];
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -38,6 +30,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  bool _isLoading = true;
+
   late GoogleMapController _controller;
   bool _myLocationEnabled = false;
   Place? _place;
@@ -48,166 +42,132 @@ class _MapScreenState extends State<MapScreen> {
   final Set<Marker> _markers = {}; // 마커 리스트 추가
   final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
   final LatLng _center = const LatLng(37.63695556, 127.0277194);
-  final FirestoreScheduleService service = FirestoreScheduleService();
 
   @override
   void initState() {
     super.initState();
-    _initializeLocationPermissions(); // 위치 권한 초기화
-    _loadCustomIcons();
+    _initializeMap();
   }
 
-  // 위치 권한 확인 및 요청 메서드
-  Future<void> _initializeLocationPermissions() async {
-    LocationPermission status = await Geolocator.checkPermission();
-    if (status == LocationPermission.denied) {
-      status = await Geolocator.requestPermission();
-      if (status == LocationPermission.denied || status == LocationPermission.deniedForever) {
-        // 사용자가 위치 권한을 거부했을 때 처리
-        print("위치 권한이 거부되었습니다.");
-        return;
-      }
-    }
-    print("위치 권한이 허용되었습니다.");
+  Future<void> _initializeMap() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await loadSchedules(); // 마커 데이터 및 아이콘 로드
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  static const List<String> colors = [
-    "asset/img/marker/red/",
-    "asset/img/marker/green/",
-    "asset/img/marker/purple/",
-  ];
+  Set<Marker> getMarkers() {
+    final filteredSchedules = selectedDate == null
+        ? globalSchedules
+        : globalSchedules.where((schedule) {
+      var scheduleTime = Schedule.dateTime(schedule.time);
+      return scheduleTime.year == selectedDate!.year &&
+          scheduleTime.month == selectedDate!.month &&
+          scheduleTime.day == selectedDate!.day;
+    }).toList();
 
-  // BitmapDescriptor 아이콘을 로드하여 customIcons 리스트에 추가
-  Future<void> _loadCustomIcons() async {
-    // 리스트를 날짜 순으로 정렬
-    schedules.sort((a, b) => a.time.compareTo(b.time));
+    return filteredSchedules.asMap().entries.map((entry) {
+      final index = entry.key;
+      final schedule = entry.value;
 
-    int count = 1;
-    int colorCount = 0;
-
-    // 아이콘 로드 및 날짜별 count 초기화
-    for (int i = 0; i < schedules.length; i++) {
-      if (i > 0 &&
-          (schedules[i].time.year != schedules[i - 1].time.year ||
-              schedules[i].time.month != schedules[i - 1].time.month ||
-              schedules[i].time.day != schedules[i - 1].time.day)) {
-        count = 1; // 날짜가 바뀌면 count 초기화
-        colorCount++;
-      }
-
-      // BitmapDescriptor 로드
-      final icon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(25, 25)),
-        '${colors[colorCount]}marker$count.png',
+      return Marker(
+        markerId: MarkerId(schedule.id.toString()),
+        position: LatLng(double.parse(schedule.x!), double.parse(schedule.y!)),
+        icon: schedule.icon,
+        infoWindow: InfoWindow(
+          title: schedule.title,
+          onTap: () {
+            final formattedSchedule = OtherSchedule.Schedule(
+                id: schedule.id.toString(),
+                title: schedule.title,
+                content: '',
+                time: schedule.time,
+                place: '장소를 입력하세요' // [HS-JNYLee]: schedule에 place 속성 없어서 빈 값 정의
+            );
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (BuildContext context) {
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(height: 50, color: Colors.transparent),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context)
+                              .viewInsets
+                              .bottom, // 키보드 높이만큼 패딩 추가
+                        ),
+                        child: ScheduleEditForm(
+                          selectedDate: Schedule.dateTime(schedule.time),
+                          schedule: formattedSchedule,
+                          onSubmit: (newSchedule) {
+                            final scheduleModel =
+                            Provider.of<OtherSchedule.ScheduleModel>(
+                                context,
+                                listen: false);
+                            _controller.hideMarkerInfoWindow(MarkerId(schedule.id.toString()));
+                            final indexS = globalSchedules.indexWhere((schedule) =>
+                            schedule.id.toString() ==
+                                newSchedule.id);
+                            if (indexS != -1) {
+                              setState(() {
+                                globalSchedules[indexS]
+                                = ScheduleAndMarker(
+                                    id: newSchedule.id,
+                                    title: newSchedule.title,
+                                    time: newSchedule.time,
+                                    x: globalSchedules[indexS].x,
+                                    y: globalSchedules[indexS].y,
+                                    icon: globalSchedules[indexS].icon,
+                                    content: newSchedule.content,
+                                    place: newSchedule.place
+                                ); // 새로운 객체로 교체
+                              });
+                            }
+                            FirestoreScheduleService().updateSchedule(
+                                newSchedule.id,
+                                ScheduleDto.toScheduleDto(
+                                    newSchedule, '1'));
+                            scheduleModel.editSchedule(newSchedule);
+                            Navigator.pop(context);
+                          },
+                          onDelete: (newSchedule) {
+                            setState(() {
+                              globalSchedules.removeWhere((schedule) =>
+                              schedule.id.toString() ==
+                                  newSchedule.id);
+                              FirestoreScheduleService().deleteSchedule(newSchedule.id);
+                            });
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
       );
-
-      schedules[i].icon = icon; // 각 Schedule에 아이콘 할당
-      count++;
-    }
-
-    setState(() {}); // UI 업데이트
+    }).toSet();
   }
 
   void _onMapCreated(GoogleMapController controller) {
     _controller = controller;
   }
 
-  // 선택된 날짜에 해당하는 Marker 필터링
-  Set<Marker> getMarkers() {
-    final filteredSchedules = selectedDate == null
-        ? schedules
-        : schedules.where((schedule) {
-      return schedule.time.year == selectedDate!.year &&
-          schedule.time.month == selectedDate!.month &&
-          schedule.time.day == selectedDate!.day;
-    }).toList();
-
-    return filteredSchedules
-        .map((schedule) => Marker(
-      markerId: MarkerId(schedule.scheduleId.toString()),
-      position: schedule.latLng,
-      icon: schedule.icon ?? BitmapDescriptor.defaultMarker, // 각 Schedule의 아이콘 사용
-      infoWindow: InfoWindow(
-        title: schedule.title,
-        onTap: () {
-          final formattedSchedule = OtherSchedule.Schedule(
-              id: schedule.scheduleId.toString(),
-              title: schedule.title,
-              content: '',
-              time: DateFormat('yyyy-MM-dd HH:mm').format(schedule.time),
-              place: '장소를 입력하세요' // [HS-JNYLee]: schedule에 place 속성 없어서 빈 값 정의
-              );
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (BuildContext context) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(height: 50, color: Colors.transparent),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context)
-                            .viewInsets
-                            .bottom, // 키보드 높이만큼 패딩 추가
-                      ),
-                      child: ScheduleEditForm(
-                        selectedDate: schedule.time,
-                        schedule: formattedSchedule,
-                        onSubmit: (newSchedule) {
-                          final scheduleModel =
-                              Provider.of<OtherSchedule.ScheduleModel>(
-                                  context,
-                                  listen: false);
-                          _controller.hideMarkerInfoWindow(MarkerId(schedule.scheduleId.toString()));
-                          final indexS = schedules.indexWhere((schedule) =>
-                          schedule.scheduleId.toString() ==
-                              newSchedule.id);
-                          if (indexS != -1) {
-                            setState(() {
-                              schedules[indexS]
-                              = Schedule(
-                                  scheduleId: int.parse(newSchedule.id),
-                                  userId: 1, title: newSchedule.title,
-                                  time: newSchedule.toDateTime(),
-                                  latLng: schedules[indexS].latLng, icon: schedules[indexS].icon); // 새로운 객체로 교체
-                            });
-                          }
-                          service.updateSchedule(
-                              newSchedule.id,
-                              ScheduleDto.toScheduleDto(
-                                  newSchedule, '1'));
-                          scheduleModel.editSchedule(newSchedule);
-                          Navigator.pop(context);
-                        },
-                        onDelete: (newSchedule) {
-                          setState(() {
-                            schedules.removeWhere((schedule) =>
-                                schedule.scheduleId.toString() ==
-                                newSchedule.id);
-                            service.deleteSchedule(newSchedule.id);
-                          });
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        }, // TODO: 정보 수정
-      ),
-            ))
-        .toSet();
-  }
-
   Future<void> _getCurrentLocation() async {
-    final position = await Geolocator.getCurrentPosition();
     final cameraPosition = CameraPosition(
-      target: LatLng(position.latitude, position.longitude),
+      target: myPos,
       zoom: 18,
     );
     _controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
@@ -245,12 +205,14 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return _isLoading
+        ? Center(child: CircularProgressIndicator()) // 로딩 중
+        : Column(
       children: [
         TopSheet(onSearchMarker: (place) {
           _place = place;
           _updatePlaceMarker(place); // 새 마커 추가
-                }),
+        }),
         Expanded(
           child: Stack(
             children: [
@@ -272,10 +234,10 @@ class _MapScreenState extends State<MapScreen> {
                   onPressed: _getCurrentLocation,
                   foregroundColor: Colors.black,
                   backgroundColor: Color(0xFFF0F4F6),
-                  elevation: 8, // 그림자 크기
+                  elevation: 8,
                   child: Icon(Icons.my_location),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50), // 버튼 모서리 둥글기
+                    borderRadius: BorderRadius.circular(50),
                   ),
                 ),
               ),
@@ -283,7 +245,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
         BottomWidget(
-          datas: schedules,
+          datas: globalSchedules,
           onDateSelected: (DateTime? date) {
             setState(() {
               selectedDate = date;
@@ -293,6 +255,7 @@ class _MapScreenState extends State<MapScreen> {
       ],
     );
   }
+
 
   // 상준's 작품
   void _fetchReviewsAndDetails(String placeId) async {

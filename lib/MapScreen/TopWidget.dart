@@ -15,8 +15,6 @@ class TopSheet extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
       child: Row(
         children: [
-          const Icon(Icons.arrow_back_ios, size: 20),
-          const SizedBox(width: 10),
           const Text("지도", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
           const Spacer(),
           IconButton(

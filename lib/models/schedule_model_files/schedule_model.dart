@@ -1,5 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+
+class ScheduleAndMarker extends Schedule {
+  BitmapDescriptor icon;
+
+  ScheduleAndMarker({
+    required this.icon, required super.id, required super.title, required super.content, required super.time, required super.place, required super.x, required super.y
+  });
+}
 
 class Schedule {
   final String id;
@@ -17,11 +27,27 @@ class Schedule {
     required this.time,
     required this.place,
     this.x,
-    this.y,
+    this.y
   });
 
-  DateTime toDateTime() {
-    return DateFormat('yyyy-MM-dd HH:mm').parse(time);
+  /// time 값을 DateTime으로 변환하여 반환
+  static DateTime dateTime(String time) {
+    try {
+      return DateFormat('yyyy-MM-dd HH:mm').parse(time);
+    } catch (e) {
+      debugPrint('Error parsing time: $e');
+      return DateTime(0); // 오류 발생 시 null 반환
+    }
+  }
+
+  /// DateTime 값을 String으로 변환
+  static String dateTimeToString(DateTime dateTime) {
+    try {
+      return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    } catch (e) {
+      debugPrint('Error formatting DateTime: $e');
+      return ''; // 오류 발생 시 빈 문자열 반환
+    }
   }
 }
 
