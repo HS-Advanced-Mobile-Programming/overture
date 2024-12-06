@@ -40,8 +40,6 @@ class _MapScreenState extends State<MapScreen> {
     preloadBitmapDescriptors().then((_) {
       setState(() {}); // 로드 완료 후 상태 갱신
     });
-
-    loadSchedules();
   }
 
   static const List<String> colors = [
@@ -143,6 +141,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    loadSchedules();
+
     return Column(
       children: [
         TopSheet(onSearchMarker: (place) {
