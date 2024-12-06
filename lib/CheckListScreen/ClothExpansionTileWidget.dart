@@ -1,14 +1,19 @@
 import 'package:counter_button/counter_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'ClothingChecklistWidget.dart';
+import '../models/check_model_files/clothes_model.dart';
+import 'ClothingChecklistItemWidget.dart';
 
 class ClothingExpansionTile extends StatefulWidget {
-  final List<Widget> clothingList;
-  final Function(Widget newItem) onItemAdded;
-  final Function(Widget target) onItemDelete; //TODO 삭제 안됨
+  final List<ClothesContent> clothingList;
+  final Function(ClothesContent newItem) onItemAdded;
+  final Function(String targetid) onItemDelete;
 
-  ClothingExpansionTile({required this.clothingList, required this.onItemAdded, required this.onItemDelete});
+  ClothingExpansionTile({
+    required this.clothingList,
+    required this.onItemAdded,
+    required this.onItemDelete
+  });
 
   @override
   _ClothingExpansionTileState createState() => _ClothingExpansionTileState();
@@ -22,7 +27,20 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
       backgroundColor: Colors.white,
       title: Text("👕 의류"),
       children: [
-        Column(children: widget.clothingList),
+        Column( children: widget.clothingList.map((item) =>
+            ClothesCheckListItem(
+            id: item.clotheId,
+            itemName: item.itemName,
+            description: item.description,
+            quantity: item.quantity,
+            checked : item.isChecked,
+            onItemDelete: widget.onItemDelete,
+            onDeleteItemCancel : (ClothesContent tmp){
+              setState(() {
+                widget.clothingList.add(tmp);
+              });
+            }
+          )).toList()),
         Padding(
           padding: EdgeInsets.only(right: 16, left: 16, bottom: 16),
           child: Row(
@@ -121,13 +139,14 @@ class _ClothingExpansionTileState extends State<ClothingExpansionTile> {
                                           color: Colors.blue,
                                           child: TextButton(
                                             onPressed: () {
-                                              Widget newItem = ClothesCheckListItem(
+                                              int size = widget.clothingList.length;
+                                              ClothesContent newItem = ClothesContent(
+                                                  clotheId: "${++size}",
                                                   itemName: _newClothesItemName.text,
                                                   description: _newCLothesItemdescription.text,
                                                   quantity: _newCounterValue,
-                                                  // onItemDelete: widget.onItemDelete,
+                                                  isChecked: false
                                                 );
-
                                               widget.onItemAdded(newItem);
                                               Navigator.pop(context);
                                             },

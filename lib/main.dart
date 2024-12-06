@@ -9,11 +9,13 @@ import 'package:overture/auth/auth_screen.dart';
 import 'package:overture/auth/login_screen.dart';
 import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
+import 'package:overture/auth/auth_screen.dart';
 import 'package:overture/models/place_model_files/place_model.dart';
+import 'package:overture/models/check_model_files/clothes_model.dart';
 import 'package:overture/models/schedule_model_files/schedule_model.dart';
 import 'package:provider/provider.dart';
+import 'models/check_model_files/essential_model.dart';
 
-//TODO main icon 움직이게
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ScheduleModel()),
+        ChangeNotifierProvider(create: (_) => EssentialCheckListModel()),
+        ChangeNotifierProvider(create: (_) => ClothesCheckListModel())
       ],
       child: const MyApp(),
     ),
