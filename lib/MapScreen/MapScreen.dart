@@ -168,7 +168,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _getCurrentLocation() async {
     final cameraPosition = CameraPosition(
       target: myPos,
-      zoom: 18,
+      zoom: 11,
     );
     _controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
     setState(() {
@@ -196,7 +196,7 @@ class _MapScreenState extends State<MapScreen> {
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng(37.5665, 126.9780), // 예제: 장소의 LatLng 설정 필요
-          zoom: 15,
+          zoom: 11,
         ),
       ),
     );

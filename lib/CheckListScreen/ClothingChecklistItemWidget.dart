@@ -67,7 +67,7 @@ class _ClothesCheckListItemState extends State<ClothesCheckListItem> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('삭제되었습니다.'),
-                    duration: Duration(seconds: 2),
+                    duration: Duration(seconds: 4),
                     action: SnackBarAction(
                       label: '취소',
                       onPressed: () {
