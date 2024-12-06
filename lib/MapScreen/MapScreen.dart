@@ -31,44 +31,14 @@ class _MapScreenState extends State<MapScreen> {
   Map<String, dynamic> _placeDetails = {};
   DateTime? selectedDate; // 선택된 날짜
   final Set<Marker> _markers = {}; // 마커 리스트 추가
-  final List<BitmapDescriptor> customIcons = []; // 사용자 정의 아이콘 리스트
   final LatLng _center = const LatLng(37.63695556, 127.0277194);
 
   @override
   void initState() {
     super.initState();
-    preloadBitmapDescriptors().then((_) {
-      setState(() {}); // 로드 완료 후 상태 갱신
-    });
-  }
-
-  static const List<String> colors = [
-    "asset/img/marker/red/",
-    "asset/img/marker/green/",
-    "asset/img/marker/purple/",
-  ];
-
-  // BitmapDescriptor 아이콘을 로드하여 customIcons 리스트에 추가
-  Future<void> preloadBitmapDescriptors() async {
-    int count = 1;
-    int colorCount = 0;
-
-    globalSchedules.sort((a, b) => a.time.compareTo(b.time));
-
-    for (int i = 0; i < globalSchedules.length; i++) {
-      if (i > 0 && Schedule.dateTime(globalSchedules[i].time).day != Schedule.dateTime(globalSchedules[i-1].time).day) {
-        count = 1; // 날짜가 바뀌면 count 초기화
-        colorCount++;
-      }
-
-      final icon = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(25, 25)),
-        '${colors[colorCount]}marker$count.png',
-      );
-
-      customIcons.add(icon);
-      count++;
-    }
+    // preloadBitmapDescriptors().then((_) {
+    //   setState(() {}); // 로드 완료 후 상태 갱신
+    // });
   }
 
   Set<Marker> getMarkers() {
@@ -88,7 +58,7 @@ class _MapScreenState extends State<MapScreen> {
       return Marker(
         markerId: MarkerId(schedule.id.toString()),
         position: LatLng(double.parse(schedule.x!), double.parse(schedule.y!)),
-        icon: customIcons.isNotEmpty ? customIcons[index] : BitmapDescriptor.defaultMarker,
+        icon: schedule.icon,
         infoWindow: InfoWindow(
           title: schedule.title,
           onTap: () {}, // TODO: 정보 수정

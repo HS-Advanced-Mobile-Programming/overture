@@ -1,5 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+
+class ScheduleAndMarker extends Schedule {
+  BitmapDescriptor icon;
+
+  ScheduleAndMarker({
+    required this.icon, required super.id, required super.title, required super.content, required super.time, required super.place, required super.x, required super.y
+  });
+}
 
 class Schedule {
   final String id;

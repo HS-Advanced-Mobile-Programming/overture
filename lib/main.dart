@@ -70,7 +70,7 @@ class _MyApp extends State<MyApp> {
 
       // Schedule 초기화
       List<ScheduleDto> scheduleDtos = await FirestoreScheduleService().getAllSchedules();
-      globalSchedules = scheduleDtos.map((dto) => ScheduleDto.toSchedule(dto)).toList();
+      globalSchedules = scheduleDtos.map((dto) => ScheduleDto.toScheduleAndMarker(dto, BitmapDescriptor.defaultMarker)).toList();
 
       // 실시간 위치 스트림 구독
       Geolocator.getPositionStream(
