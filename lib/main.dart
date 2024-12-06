@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:overture/auth/auth_screen.dart';
 import 'package:overture/auth/login_screen.dart';
 import 'package:overture/auth/signup_screen.dart';
 import 'package:overture/home_screen.dart';
